@@ -3,7 +3,8 @@
   chrome.runtime.sendMessage({ action: 'getState' }, function(state) {
     if (!state || state.step !== 7 || !state.username) return;
 
-    var txt = 'user: ' + state.username + '\npass: changethis\njenkins.hfm.com';
+    var jenkinsDomain = state.config ? state.config.jenkinsDomain : 'jenkins';
+    var txt = 'user: ' + state.username + '\npass: changethis\n' + jenkinsDomain;
 
     var i = setInterval(function() {
       var el = document.querySelector('textarea[name="secret"]');

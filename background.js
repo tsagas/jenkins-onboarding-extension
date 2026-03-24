@@ -1,3 +1,12 @@
+// URL configuration — change these to match your environment
+var CONFIG = {
+  jenkinsBase: 'https://jenkins.hfmarkets.com',
+  yopassBase: 'https://yopass.hfmarkets.com',
+  slackBase: 'https://app.slack.com',
+  emailDomain: 'hfm.com',
+  jenkinsDomain: 'jenkins.hfm.com'
+};
+
 // State management
 let state = {
   fullName: '',
@@ -25,7 +34,7 @@ function setName(name) {
   var p = name.trim().split(' ');
   state.fullName = name.trim();
   state.username = p[0][0].toLowerCase() + p[p.length - 1].toLowerCase();
-  state.email = state.username + '@hfm.com';
+  state.email = state.username + '@' + CONFIG.emailDomain;
   saveState();
 }
 
@@ -45,7 +54,7 @@ function closeAllOpenedTabs() {
 chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
 
   if (msg.action === 'getState') {
-    sendResponse(state);
+    sendResponse(Object.assign({}, state, { config: CONFIG }));
     return;
   }
 
@@ -74,7 +83,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
   }
 
   if (msg.action === 'step1_openJenkins') {
-    chrome.tabs.create({ url: 'https://jenkins.hfmarkets.com/manage/securityRealm/addUser' }, function(tab) {
+    chrome.tabs.create({ url: CONFIG.jenkinsBase + '/manage/securityRealm/addUser' }, function(tab) {
       trackTab(tab);
       state.step = 2;
       saveState();
@@ -85,7 +94,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
 
   // Step 2: open assign-roles
   if (msg.action === 'step2_openAssignRoles') {
-    chrome.tabs.create({ url: 'https://jenkins.hfmarkets.com/manage/role-strategy/assign-roles' }, function(tab) {
+    chrome.tabs.create({ url: CONFIG.jenkinsBase + '/manage/role-strategy/assign-roles' }, function(tab) {
       trackTab(tab);
       state.step = 3;
       saveState();
@@ -96,7 +105,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
 
   // Step 3: open alert-targets pipeline
   if (msg.action === 'step3_openPipeline') {
-    chrome.tabs.create({ url: 'https://jenkins.hfmarkets.com/job/add-user-to-alert-targets/build?delay=0sec' }, function(tab) {
+    chrome.tabs.create({ url: CONFIG.jenkinsBase + '/job/add-user-to-alert-targets/build?delay=0sec' }, function(tab) {
       trackTab(tab);
       state.step = 4;
       saveState();
@@ -107,7 +116,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
 
   // Step 4: Open Slack
   if (msg.action === 'step4_openSlack') {
-    chrome.tabs.create({ url: 'https://app.slack.com/client' }, function(tab) {
+    chrome.tabs.create({ url: CONFIG.slackBase + '/client' }, function(tab) {
       trackTab(tab);
       state.slackTabId = tab.id;
       state.step = 5;
@@ -128,7 +137,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
 
   // Step 6: Open Yopass
   if (msg.action === 'step6_openYopass') {
-    chrome.tabs.create({ url: 'https://yopass.hfmarkets.com' }, function(tab) {
+    chrome.tabs.create({ url: CONFIG.yopassBase }, function(tab) {
       trackTab(tab);
       state.step = 7;
       saveState();

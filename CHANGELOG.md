@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.0-alpha
+
+### Changed
+- Centralized all environment URLs into a single CONFIG object in background.js
+- Made manifest.json URL-agnostic with wildcard match patterns
+- Content scripts now receive config via getState for dynamic URL references
+- Relaxed timeouts across all content scripts for improved reliability
+- Clipboard copy of full name in step 1 for form auto-fill
+
 ## 0.2.0-alpha
 
 ### Added
