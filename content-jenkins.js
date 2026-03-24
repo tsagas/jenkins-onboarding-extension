@@ -26,7 +26,10 @@
         });
 
         // Auto-submit the form
-        var submitBtn = document.querySelector('button[type="submit"],input[type="submit"]');
+        var submitBtn = document.querySelector('button[type="submit"],input[type="submit"]') ||
+          Array.from(document.querySelectorAll('button')).find(function(b) {
+            return b.textContent.trim().match(/create\s*user/i);
+          });
         if (submitBtn) submitBtn.click();
 
         window.addEventListener('beforeunload', function() {
@@ -75,7 +78,7 @@
       return;
     }
 
-    // Step 4: Fill alert-targets pipeline and auto-run
+    // Step 4: Fill alert-targets pipeline (initial fill + open Slack)
     if (url.includes('add-user-to-alert-targets') && state.step === 4) {
       var i = setInterval(function() {
         var t = document.querySelectorAll('input[type="text"]');
@@ -87,39 +90,30 @@
         t.forEach(function(x) {
           x.dispatchEvent(new Event('input', { bubbles: true }));
         });
-
-        // Open Slack to get member ID
         chrome.runtime.sendMessage({ action: 'step4_openSlack' });
-
-        // Poll for slack ID to be set in state
-        var j = setInterval(function() {
-          chrome.runtime.sendMessage({ action: 'getState' }, function(s) {
-            if (s && s.slackId) {
-              clearInterval(j);
-              // Find SLACK_USERNAME field (4th text input)
-              var inputs = document.querySelectorAll('input[type="text"]');
-              if (inputs.length >= 4) {
-                inputs[3].value = s.slackId;
-                inputs[3].dispatchEvent(new Event('input', { bubbles: true }));
-              }
-
-              // Auto-click Build/Run button
-              setTimeout(function() {
-                var buildBtn = document.querySelector('button[name="Submit"]') ||
-                  Array.from(document.querySelectorAll('button,input[type="submit"]')).find(function(b) {
-                    return (b.textContent || b.value || '').match(/build|run|submit/i);
-                  });
-                if (buildBtn) buildBtn.click();
-
-                // After build, proceed to Yopass
-                setTimeout(function() {
-                  chrome.runtime.sendMessage({ action: 'step6_openYopass' });
-                }, 3000);
-              }, 1000);
-            }
-          });
-        }, 1000);
       }, 500);
+    }
+
+    // Step 6: Back from Slack — fill Slack ID, re-copy name, build
+    if (url.includes('add-user-to-alert-targets') && state.step === 6) {
+      var inputs = document.querySelectorAll('input[type="text"]');
+      if (inputs.length >= 4) {
+        inputs[3].value = state.slackId;
+        inputs[3].dispatchEvent(new Event('input', { bubbles: true }));
+      }
+      navigator.clipboard.writeText(state.fullName);
+
+      setTimeout(function() {
+        var buildBtn = document.querySelector('button[name="Submit"]') ||
+          Array.from(document.querySelectorAll('button,input[type="submit"]')).find(function(b) {
+            return (b.textContent || b.value || '').match(/build|run|submit/i);
+          });
+        if (buildBtn) buildBtn.click();
+
+        setTimeout(function() {
+          chrome.runtime.sendMessage({ action: 'step6_openYopass' });
+        }, 3000);
+      }, 1000);
     }
   });
 })();

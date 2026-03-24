@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.0-alpha
+
+### Fixed
+- Create User button not being clicked (broadened selector to match button text)
+- Flow stopping after Slack ID copy (now switches back to pipeline tab, fills Slack ID, re-copies full name, auto-builds)
+
+### Changed
+- Background.js now tracks pipeline tab ID and re-injects content-jenkins.js after Slack ID is found
+- Split pipeline step into step 4 (fill + open Slack) and step 6 (fill Slack ID + build)
+
 ## 0.4.0-alpha
 
 ### Changed

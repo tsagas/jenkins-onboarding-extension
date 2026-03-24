@@ -17,12 +17,13 @@ let state = {
   jiraTicket: '',
   jiraTabId: null,
   slackTabId: null,
+  pipelineTabId: null,
   openedTabs: [],
   step: 0
 };
 
 function resetState() {
-  state = { fullName: '', username: '', email: '', slackId: '', slackMessage: '', jiraTicket: '', jiraTabId: null, slackTabId: null, openedTabs: [], step: 0 };
+  state = { fullName: '', username: '', email: '', slackId: '', slackMessage: '', jiraTicket: '', jiraTabId: null, slackTabId: null, pipelineTabId: null, openedTabs: [], step: 0 };
   chrome.storage.local.set({ onboardState: state });
 }
 
@@ -107,6 +108,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
   if (msg.action === 'step3_openPipeline') {
     chrome.tabs.create({ url: CONFIG.jenkinsBase + '/job/add-user-to-alert-targets/build?delay=0sec' }, function(tab) {
       trackTab(tab);
+      state.pipelineTabId = tab.id;
       state.step = 4;
       saveState();
     });
@@ -126,11 +128,21 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     return;
   }
 
-  // Step 5: Slack ID found — go back to pipeline tab
+  // Step 5: Slack ID found — switch back to pipeline tab and re-inject
   if (msg.action === 'step5_slackIdFound') {
     state.slackId = msg.slackId;
     state.step = 6;
     saveState();
+    if (state.pipelineTabId) {
+      chrome.tabs.update(state.pipelineTabId, { active: true }, function() {
+        setTimeout(function() {
+          chrome.scripting.executeScript({
+            target: { tabId: state.pipelineTabId },
+            files: ['content-jenkins.js']
+          });
+        }, 500);
+      });
+    }
     sendResponse(state);
     return;
   }
