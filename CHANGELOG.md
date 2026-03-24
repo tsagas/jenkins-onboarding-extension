@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.1-alpha
+
+### Fixed
+- Assign-roles Save redirect: detect /role-strategy/ landing page instead of click listener that died on navigation
+
 ## 0.6.0-alpha
 
 ### Fixed

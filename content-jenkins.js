@@ -68,21 +68,15 @@
             if (devCheckbox) devCheckbox.checked = true;
             alert('Role assignment filled!\nSelect the appropriate roles and click Save.');
 
-            // Watch for Save button click to proceed
-            var saveBtn = document.querySelector('button[name="Submit"]') ||
-              Array.from(document.querySelectorAll('button,input[type="submit"]')).find(function(b) {
-                return (b.textContent || b.value || '').match(/save/i);
-              });
-            if (saveBtn) {
-              saveBtn.addEventListener('click', function() {
-                setTimeout(function() {
-                  chrome.runtime.sendMessage({ action: 'step3_openPipeline' });
-                }, 1500);
-              });
-            }
           }, 1500);
         }, 1500);
       }, 500);
+    }
+
+    // Step 3 continued: landed on /role-strategy/ after Save redirect
+    if (url.match(/role-strategy\/?$/) && state.step === 3) {
+      chrome.runtime.sendMessage({ action: 'step3_openPipeline' });
+      return;
     }
 
     // Step 4: Fill alert-targets pipeline, then open Slack
