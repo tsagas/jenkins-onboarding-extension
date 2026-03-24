@@ -23,7 +23,10 @@
         if (radio) radio.click();
 
         setTimeout(function() {
-          var btn = document.querySelector('button[type="submit"]');
+          var btn = document.querySelector('button[type="submit"]') ||
+            Array.from(document.querySelectorAll('button')).find(function(b) {
+              return b.textContent.trim().match(/generate|encrypt|create/i);
+            });
           if (btn) btn.click();
 
           var j = setInterval(function() {

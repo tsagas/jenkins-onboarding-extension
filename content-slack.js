@@ -48,9 +48,16 @@
                   });
                   if (!found) return;
                   clearInterval(l);
-                  simClick(found);
+                  // Try multiple click methods and retry
+                  var attempts = 0;
+                  function tryClick() {
+                    simClick(found);
+                    found.click();
+                    found.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+                  }
+                  tryClick();
 
-                  // Watchdog: poll clipboard until we get a Slack member ID
+                  // Watchdog: poll clipboard, retry click if needed
                   var w = setInterval(function() {
                     navigator.clipboard.readText().then(function(slackId) {
                       if (slackId && slackId.match(/^U[A-Z0-9]+$/)) {
@@ -59,8 +66,14 @@
                           action: 'step5_slackIdFound',
                           slackId: slackId
                         });
+                      } else {
+                        attempts++;
+                        if (attempts % 4 === 0) tryClick();
                       }
-                    }).catch(function() {});
+                    }).catch(function() {
+                      attempts++;
+                      if (attempts % 4 === 0) tryClick();
+                    });
                   }, 500);
                 }, 1000);
               }, 1000);
