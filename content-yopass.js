@@ -25,7 +25,6 @@
           var btn = document.querySelector('button[type="submit"]');
           if (btn) btn.click();
 
-          // Poll for the generated link
           var j = setInterval(function() {
             var link = document.querySelector('#root .truncate');
             if (!link) return;
@@ -33,14 +32,13 @@
 
             var msg = 'Hi, please find below your jenkins credentials.\nThe secret has expiry date, please open it in a timely manner.\n' + link.textContent;
 
-            // Send message to Slack via background
             chrome.runtime.sendMessage({
               action: 'step7_sendSlackMessage',
               message: msg
             });
-          }, 600);
-        }, 600);
-      }, 600);
+          }, 1000);
+        }, 1000);
+      }, 1000);
     }, 500);
   });
 })();

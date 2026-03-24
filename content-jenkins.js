@@ -32,7 +32,7 @@
         window.addEventListener('beforeunload', function() {
           chrome.runtime.sendMessage({ action: 'step2_openAssignRoles' });
         });
-      }, 500);
+      }, 1000);
     }
 
     // Step 2 continued: after addUser submission, page may show success or redirect
@@ -64,8 +64,8 @@
             });
             if (devCheckbox) devCheckbox.checked = true;
             alert('Role assignment filled!\nSelect the appropriate roles and click Save.');
-          }, 1000);
-        }, 1000);
+          }, 1500);
+        }, 1500);
       }, 500);
     }
 
@@ -114,8 +114,8 @@
                 // After build, proceed to Yopass
                 setTimeout(function() {
                   chrome.runtime.sendMessage({ action: 'step6_openYopass' });
-                }, 2000);
-              }, 500);
+                }, 3000);
+              }, 1000);
             }
           });
         }, 1000);

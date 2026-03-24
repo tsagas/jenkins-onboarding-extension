@@ -18,6 +18,9 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
 
     chrome.runtime.sendMessage({ action: 'step1_start', fullName: n, ticket: ticket });
 
+    // Copy name to clipboard for other forms
+    navigator.clipboard.writeText(n);
+
     var statusBtn = document.querySelector('#issue\\.fields\\.status-view\\.status-button');
     if (statusBtn && statusBtn.textContent.trim().includes('In Progress')) {
       // Already in progress, skip transition
@@ -37,14 +40,13 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
             submit.click();
             setTimeout(function() {
               chrome.runtime.sendMessage({ action: 'step1_openJenkins' });
-            }, 2000);
-          }, 500);
+            }, 3000);
+          }, 1000);
         } else {
-          // Close dropdown and proceed
           document.body.click();
           chrome.runtime.sendMessage({ action: 'step1_openJenkins' });
         }
-      }, 1000);
+      }, 1500);
     } else {
       chrome.runtime.sendMessage({ action: 'step1_openJenkins' });
     }
@@ -86,10 +88,10 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
               else alert('Resolved but comment failed: ' + r.status);
               chrome.runtime.sendMessage({ action: 'reset' });
             });
-          }, 2000);
-        }, 500);
-      }, 500);
-    }, 1000);
+          }, 3000);
+        }, 1000);
+      }, 1000);
+    }, 1500);
     sendResponse({ ok: true });
     return true;
   }

@@ -66,7 +66,7 @@
             }, 1000);
           }, 1000);
         }, 1000);
-      }, 3000);
+      }, 5000);
     }
   });
 
@@ -77,14 +77,12 @@
       document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, bubbles: true }));
 
       setTimeout(function() {
-        // Find the message editor (ql-editor that's NOT the search Query)
         var editors = document.querySelectorAll('.ql-editor');
         var msgEditor = Array.from(editors).find(function(el) {
           return el.getAttribute('aria-label') !== 'Query' && el.getAttribute('role') !== 'combobox';
         });
 
         if (!msgEditor) {
-          // Try clicking on the message input area first
           var msgArea = document.querySelector('[data-qa="message_input"]') || document.querySelector('.p-message_input');
           if (msgArea) msgArea.click();
 
@@ -94,11 +92,11 @@
               return el.getAttribute('aria-label') !== 'Query' && el.getAttribute('role') !== 'combobox';
             });
             if (msgEditor) typeAndSend(msgEditor, msg.message);
-          }, 1000);
+          }, 1500);
         } else {
           typeAndSend(msgEditor, msg.message);
         }
-      }, 1000);
+      }, 1500);
 
       sendResponse({ ok: true });
       return true;
@@ -118,7 +116,7 @@
 
       setTimeout(function() {
         chrome.runtime.sendMessage({ action: 'step8_resolveJira' });
-      }, 1000);
-    }, 1000);
+      }, 1500);
+    }, 1500);
   }
 })();
