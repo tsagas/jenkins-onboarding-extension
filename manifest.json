@@ -1,0 +1,50 @@
+{
+  "manifest_version": 3,
+  "name": "Jenkins Onboarding",
+  "version": "1.0",
+  "description": "Automate Jenkins user onboarding across Jira, Jenkins, Slack, and Yopass",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "tabs",
+    "clipboardRead",
+    "clipboardWrite"
+  ],
+  "host_permissions": [
+    "https://jenkins.hfmarkets.com/*",
+    "https://app.slack.com/*",
+    "https://yopass.hfmarkets.com/*",
+    "https://*.atlassian.net/*",
+    "*://*/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "icon.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://jenkins.hfmarkets.com/*"],
+      "js": ["content-jenkins.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://app.slack.com/*"],
+      "js": ["content-slack.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://yopass.hfmarkets.com/*"],
+      "js": ["content-yopass.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["*://*/*"],
+      "js": ["content-jira.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
