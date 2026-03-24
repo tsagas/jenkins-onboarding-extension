@@ -50,17 +50,18 @@
                   clearInterval(l);
                   simClick(found);
 
-                  setTimeout(function() {
+                  // Watchdog: poll clipboard until we get a Slack member ID
+                  var w = setInterval(function() {
                     navigator.clipboard.readText().then(function(slackId) {
                       if (slackId && slackId.match(/^U[A-Z0-9]+$/)) {
+                        clearInterval(w);
                         chrome.runtime.sendMessage({
                           action: 'step5_slackIdFound',
                           slackId: slackId
                         });
-                        // Keep tab open — we'll come back to send the message
                       }
-                    });
-                  }, 1000);
+                    }).catch(function() {});
+                  }, 500);
                 }, 1000);
               }, 1000);
             }, 1000);

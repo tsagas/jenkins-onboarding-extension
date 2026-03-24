@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.6.0-alpha
+
+### Fixed
+- Slack ID copy watchdog: poll clipboard every 500ms instead of single read attempt
+- Assign-roles now waits for Save button click before opening pipeline tab
+
+### Changed
+- Clear clipboard before opening Slack for clean watchdog baseline
+
 ## 0.5.0-alpha
 
 ### Fixed

@@ -44,7 +44,7 @@
       return;
     }
 
-    // Step 3: Fill assign-roles
+    // Step 3: Fill assign-roles, wait for user to Save
     if (url.includes('role-strategy/assign-roles') && state.step === 3) {
       var i = setInterval(function() {
         var addBtn = Array.from(document.querySelectorAll('button,input[type="button"],a')).find(function(b) {
@@ -67,18 +67,25 @@
             });
             if (devCheckbox) devCheckbox.checked = true;
             alert('Role assignment filled!\nSelect the appropriate roles and click Save.');
+
+            // Watch for Save button click to proceed
+            var saveBtn = document.querySelector('button[name="Submit"]') ||
+              Array.from(document.querySelectorAll('button,input[type="submit"]')).find(function(b) {
+                return (b.textContent || b.value || '').match(/save/i);
+              });
+            if (saveBtn) {
+              saveBtn.addEventListener('click', function() {
+                setTimeout(function() {
+                  chrome.runtime.sendMessage({ action: 'step3_openPipeline' });
+                }, 1500);
+              });
+            }
           }, 1500);
         }, 1500);
       }, 500);
     }
 
-    // Step 3 continued: After save, page navigates away from assign-roles
-    if (!url.includes('assign-roles') && !url.includes('securityRealm/addUser') && !url.includes('add-user-to-alert-targets') && state.step === 3) {
-      chrome.runtime.sendMessage({ action: 'step3_openPipeline' });
-      return;
-    }
-
-    // Step 4: Fill alert-targets pipeline (initial fill + open Slack)
+    // Step 4: Fill alert-targets pipeline, then open Slack
     if (url.includes('add-user-to-alert-targets') && state.step === 4) {
       var i = setInterval(function() {
         var t = document.querySelectorAll('input[type="text"]');
@@ -90,7 +97,10 @@
         t.forEach(function(x) {
           x.dispatchEvent(new Event('input', { bubbles: true }));
         });
-        chrome.runtime.sendMessage({ action: 'step4_openSlack' });
+        // Clear clipboard before opening Slack so watchdog has a clean baseline
+        navigator.clipboard.writeText('').then(function() {
+          chrome.runtime.sendMessage({ action: 'step4_openSlack' });
+        });
       }, 500);
     }
 
