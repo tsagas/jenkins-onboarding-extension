@@ -63,19 +63,17 @@
               return c.name.includes('Developer') || (c.closest('tr') && c.closest('tr').textContent.includes('Developer'));
             });
             if (devCheckbox) devCheckbox.checked = true;
-            alert('Role assignment filled!\nCheck Developer role, click Save, then the next step opens automatically.');
-
-            // Watch for save (URL changes after save)
-            var currentUrl = location.href;
-            var j = setInterval(function() {
-              if (location.href !== currentUrl) {
-                clearInterval(j);
-                chrome.runtime.sendMessage({ action: 'step3_openPipeline' });
-              }
-            }, 500);
+            alert('Role assignment filled!\nCheck Developer role and click Save.');
           }, 1000);
         }, 1000);
       }, 500);
+    }
+
+    // Step 3 continued: After save, page navigates away from assign-roles
+    // The content script re-runs on the new page, detect we're on Jenkins but not on assign-roles anymore
+    if (!url.includes('assign-roles') && !url.includes('securityRealm/addUser') && !url.includes('add-user-to-alert-targets') && state.step === 3) {
+      chrome.runtime.sendMessage({ action: 'step3_openPipeline' });
+      return;
     }
 
     // Step 4: Fill alert-targets pipeline
