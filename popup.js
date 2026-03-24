@@ -29,12 +29,21 @@ function updateUI(state) {
 
 document.getElementById('startBtn').addEventListener('click', function() {
   chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
-    chrome.tabs.sendMessage(tabs[0].id, { action: 'startOnboarding' }, function(response) {
-      if (chrome.runtime.lastError) {
-        alert('Please run this from a Jira ticket page.\n\nError: ' + chrome.runtime.lastError.message);
-        return;
-      }
-      window.close();
+    var tabId = tabs[0].id;
+    // Inject the content script first, then send the message
+    chrome.scripting.executeScript({
+      target: { tabId: tabId },
+      files: ['content-jira.js']
+    }, function() {
+      setTimeout(function() {
+        chrome.tabs.sendMessage(tabId, { action: 'startOnboarding' }, function(response) {
+          if (chrome.runtime.lastError) {
+            alert('Error: ' + chrome.runtime.lastError.message);
+            return;
+          }
+          window.close();
+        });
+      }, 200);
     });
   });
 });

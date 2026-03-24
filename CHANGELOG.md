@@ -8,6 +8,8 @@
 - Auto-send credentials message to user via Slack DM
 - Tab tracking — all opened tabs are closed automatically after completion
 - New step 7: Slack message sending (previously manual)
+- Stable extension ID via manifest key (no more duplicates on reload)
+- Custom extension icon
 
 ### Changed
 - Increased all Slack interaction timeouts to 1000ms for reliability
@@ -15,12 +17,15 @@
 - Yopass now triggers Slack message send instead of resolving Jira directly
 - Flow is now 8 steps instead of 7
 - Popup uses HTML entities for special characters (fixes encoding issues)
+- Jira content script restricted to *.atlassian.net (was matching all URLs)
+- Jira content script injected on demand via chrome.scripting.executeScript
 
 ### Fixed
 - UTF-8 charset declaration in popup (fixes garbled emoji/arrows)
 - Handle tickets already in "In Progress" state without hanging
 - Close status dropdown if "Start progress" option not found
 - Detect page navigation after assign-roles save to proceed to next step
+- "Could not establish connection" error on Jira pages
 
 ## 0.1.1-alpha
 

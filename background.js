@@ -161,13 +161,18 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
   if (msg.action === 'step8_resolveJira') {
     state.step = 9;
     saveState();
-    // Close all opened tabs except Jira
     closeAllOpenedTabs();
-    // Switch to Jira and resolve
     if (state.jiraTabId) {
       chrome.tabs.update(state.jiraTabId, { active: true });
       setTimeout(function() {
-        chrome.tabs.sendMessage(state.jiraTabId, { action: 'resolveTicket', ticket: state.jiraTicket });
+        chrome.scripting.executeScript({
+          target: { tabId: state.jiraTabId },
+          files: ['content-jira.js']
+        }, function() {
+          setTimeout(function() {
+            chrome.tabs.sendMessage(state.jiraTabId, { action: 'resolveTicket', ticket: state.jiraTicket });
+          }, 200);
+        });
       }, 500);
     }
     sendResponse(state);
