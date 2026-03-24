@@ -4,13 +4,16 @@ let state = {
   username: '',
   email: '',
   slackId: '',
+  slackMessage: '',
   jiraTicket: '',
   jiraTabId: null,
+  slackTabId: null,
+  openedTabs: [],
   step: 0
 };
 
 function resetState() {
-  state = { fullName: '', username: '', email: '', slackId: '', jiraTicket: '', jiraTabId: null, step: 0 };
+  state = { fullName: '', username: '', email: '', slackId: '', slackMessage: '', jiraTicket: '', jiraTabId: null, slackTabId: null, openedTabs: [], step: 0 };
   chrome.storage.local.set({ onboardState: state });
 }
 
@@ -26,7 +29,19 @@ function setName(name) {
   saveState();
 }
 
-// Listen for messages from content scripts and popup
+function trackTab(tab) {
+  state.openedTabs.push(tab.id);
+  saveState();
+}
+
+function closeAllOpenedTabs() {
+  state.openedTabs.forEach(function(tabId) {
+    try { chrome.tabs.remove(tabId); } catch(e) {}
+  });
+  state.openedTabs = [];
+  saveState();
+}
+
 chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
 
   if (msg.action === 'getState') {
@@ -47,7 +62,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     return;
   }
 
-  // Step 1: Start from Jira - mark In Progress, extract name, open Jenkins addUser
+  // Step 1: Start from Jira
   if (msg.action === 'step1_start') {
     state.jiraTabId = sender.tab.id;
     state.jiraTicket = msg.ticket;
@@ -60,6 +75,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
 
   if (msg.action === 'step1_openJenkins') {
     chrome.tabs.create({ url: 'https://jenkins.hfmarkets.com/manage/securityRealm/addUser' }, function(tab) {
+      trackTab(tab);
       state.step = 2;
       saveState();
     });
@@ -67,9 +83,10 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     return;
   }
 
-  // Step 2: After addUser form filled, open assign-roles
+  // Step 2: open assign-roles
   if (msg.action === 'step2_openAssignRoles') {
     chrome.tabs.create({ url: 'https://jenkins.hfmarkets.com/manage/role-strategy/assign-roles' }, function(tab) {
+      trackTab(tab);
       state.step = 3;
       saveState();
     });
@@ -77,9 +94,10 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     return;
   }
 
-  // Step 3: After assign-roles saved, open alert-targets pipeline
+  // Step 3: open alert-targets pipeline
   if (msg.action === 'step3_openPipeline') {
     chrome.tabs.create({ url: 'https://jenkins.hfmarkets.com/job/add-user-to-alert-targets/build?delay=0sec' }, function(tab) {
+      trackTab(tab);
       state.step = 4;
       saveState();
     });
@@ -90,6 +108,8 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
   // Step 4: Open Slack
   if (msg.action === 'step4_openSlack') {
     chrome.tabs.create({ url: 'https://app.slack.com/client' }, function(tab) {
+      trackTab(tab);
+      state.slackTabId = tab.id;
       state.step = 5;
       saveState();
     });
@@ -97,15 +117,11 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     return;
   }
 
-  // Step 5: Slack ID found
+  // Step 5: Slack ID found — go back to pipeline tab
   if (msg.action === 'step5_slackIdFound') {
     state.slackId = msg.slackId;
     state.step = 6;
     saveState();
-    // Go back to pipeline tab and fill slack ID
-    if (msg.pipelineTabId) {
-      chrome.tabs.update(msg.pipelineTabId, { active: true });
-    }
     sendResponse(state);
     return;
   }
@@ -113,6 +129,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
   // Step 6: Open Yopass
   if (msg.action === 'step6_openYopass') {
     chrome.tabs.create({ url: 'https://yopass.hfmarkets.com' }, function(tab) {
+      trackTab(tab);
       state.step = 7;
       saveState();
     });
@@ -120,16 +137,39 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     return;
   }
 
-  // Step 7: Resolve Jira
-  if (msg.action === 'step7_resolveJira') {
+  // Step 7: Yopass done, send Slack message
+  if (msg.action === 'step7_sendSlackMessage') {
+    state.slackMessage = msg.message;
+    state.step = 8;
+    saveState();
+    // Switch to Slack tab and send message
+    if (state.slackTabId) {
+      chrome.tabs.update(state.slackTabId, { active: true }, function() {
+        setTimeout(function() {
+          chrome.tabs.sendMessage(state.slackTabId, {
+            action: 'sendMessage',
+            message: state.slackMessage
+          });
+        }, 1000);
+      });
+    }
+    sendResponse(state);
+    return;
+  }
+
+  // Step 8: Slack message sent, resolve Jira
+  if (msg.action === 'step8_resolveJira') {
+    state.step = 9;
+    saveState();
+    // Close all opened tabs except Jira
+    closeAllOpenedTabs();
+    // Switch to Jira and resolve
     if (state.jiraTabId) {
       chrome.tabs.update(state.jiraTabId, { active: true });
       setTimeout(function() {
         chrome.tabs.sendMessage(state.jiraTabId, { action: 'resolveTicket', ticket: state.jiraTicket });
       }, 500);
     }
-    state.step = 8;
-    saveState();
     sendResponse(state);
     return;
   }

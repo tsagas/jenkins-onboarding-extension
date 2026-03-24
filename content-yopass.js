@@ -32,9 +32,12 @@
             clearInterval(j);
 
             var msg = 'Hi, please find below your jenkins credentials.\nThe secret has expiry date, please open it in a timely manner.\n' + link.textContent;
-            navigator.clipboard.writeText(msg);
-            alert('Slack message copied!\n\nClick OK to resolve the Jira ticket.');
-            chrome.runtime.sendMessage({ action: 'step7_resolveJira' });
+
+            // Send message to Slack via background
+            chrome.runtime.sendMessage({
+              action: 'step7_sendSlackMessage',
+              message: msg
+            });
           }, 600);
         }, 600);
       }, 600);

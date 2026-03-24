@@ -2,27 +2,27 @@
 chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
 
   if (msg.action === 'startOnboarding') {
-    // Extract name from ticket
+    // Only handle on Jira-like pages or any page (for the prompt fallback)
     var t = document.body.innerText;
     var m = t.match(/(?:User|user|Name|name):\s*([A-Z][a-z]+)\s+([A-Z][a-z]+)/);
     var n;
     if (!m) {
       n = prompt('Enter full name (e.g., Daniil Yakush):');
-      if (!n) return;
+      if (!n) { sendResponse({ ok: false }); return true; }
     } else {
       n = m[1] + ' ' + m[2];
     }
 
-    // Get ticket key
     var ticketMatch = location.pathname.match(/([A-Z]+-\d+)/);
     var ticket = ticketMatch ? ticketMatch[1] : '';
 
-    // Notify background
     chrome.runtime.sendMessage({ action: 'step1_start', fullName: n, ticket: ticket });
 
-    // Mark as In Progress
     var statusBtn = document.querySelector('#issue\\.fields\\.status-view\\.status-button');
-    if (statusBtn) {
+    if (statusBtn && statusBtn.textContent.trim().includes('In Progress')) {
+      // Already in progress, skip transition
+      chrome.runtime.sendMessage({ action: 'step1_openJenkins' });
+    } else if (statusBtn) {
       statusBtn.click();
       setTimeout(function() {
         var start = Array.from(document.querySelectorAll('span')).find(function(s) {
@@ -40,7 +40,8 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
             }, 2000);
           }, 500);
         } else {
-          // Already in progress or different state
+          // Close dropdown and proceed
+          document.body.click();
           chrome.runtime.sendMessage({ action: 'step1_openJenkins' });
         }
       }, 1000);
@@ -48,7 +49,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       chrome.runtime.sendMessage({ action: 'step1_openJenkins' });
     }
     sendResponse({ ok: true });
-    return;
+    return true;
   }
 
   if (msg.action === 'resolveTicket') {
@@ -90,6 +91,6 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
       }, 500);
     }, 1000);
     sendResponse({ ok: true });
-    return;
+    return true;
   }
 });

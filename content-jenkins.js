@@ -5,7 +5,7 @@
 
     var url = location.href;
 
-    // Step 2: Fill addUser form
+    // Step 2: Fill and submit addUser form
     if (url.includes('securityRealm/addUser') && state.step === 2) {
       var i = setInterval(function() {
         var un = document.querySelector('input[name="username"]');
@@ -24,21 +24,21 @@
         ].forEach(function(x) {
           x.dispatchEvent(new Event('input', { bubbles: true }));
         });
-        alert('User creation form filled!\nSubmit the form, then click the extension to continue.');
 
-        // Watch for form submission / page change
-        var observer = new MutationObserver(function() {
-          if (document.querySelector('.success') || !document.querySelector('input[name="username"]')) {
-            observer.disconnect();
-            chrome.runtime.sendMessage({ action: 'step2_openAssignRoles' });
-          }
-        });
+        // Auto-submit the form
+        var submitBtn = document.querySelector('button[type="submit"],input[type="submit"]');
+        if (submitBtn) submitBtn.click();
 
-        // Also listen for navigation
         window.addEventListener('beforeunload', function() {
           chrome.runtime.sendMessage({ action: 'step2_openAssignRoles' });
         });
       }, 500);
+    }
+
+    // Step 2 continued: after addUser submission, page may show success or redirect
+    if (url.includes('securityRealm') && !url.includes('addUser') && state.step === 2) {
+      chrome.runtime.sendMessage({ action: 'step2_openAssignRoles' });
+      return;
     }
 
     // Step 3: Fill assign-roles
@@ -63,27 +63,20 @@
               return c.name.includes('Developer') || (c.closest('tr') && c.closest('tr').textContent.includes('Developer'));
             });
             if (devCheckbox) devCheckbox.checked = true;
-            alert('Role assignment filled!\nCheck Developer role and click Save.');
+            alert('Role assignment filled!\nSelect the appropriate roles and click Save.');
           }, 1000);
         }, 1000);
       }, 500);
     }
 
     // Step 3 continued: After save, page navigates away from assign-roles
-    // The content script re-runs on the new page, detect we're on Jenkins but not on assign-roles anymore
     if (!url.includes('assign-roles') && !url.includes('securityRealm/addUser') && !url.includes('add-user-to-alert-targets') && state.step === 3) {
       chrome.runtime.sendMessage({ action: 'step3_openPipeline' });
       return;
     }
 
-    // Step 4: Fill alert-targets pipeline
+    // Step 4: Fill alert-targets pipeline and auto-run
     if (url.includes('add-user-to-alert-targets') && state.step === 4) {
-      var pipelineTabId = null;
-      chrome.runtime.sendMessage({ action: 'getState' }, function() {
-        // Store this tab's ID for later
-        pipelineTabId = 'self';
-      });
-
       var i = setInterval(function() {
         var t = document.querySelectorAll('input[type="text"]');
         if (t.length < 3) return;
@@ -95,7 +88,7 @@
           x.dispatchEvent(new Event('input', { bubbles: true }));
         });
 
-        alert('Pipeline form partially filled.\nClick OK to open Slack and find the member ID.\nThe Slack ID will be auto-filled when found.');
+        // Open Slack to get member ID
         chrome.runtime.sendMessage({ action: 'step4_openSlack' });
 
         // Poll for slack ID to be set in state
@@ -109,19 +102,24 @@
                 inputs[3].value = s.slackId;
                 inputs[3].dispatchEvent(new Event('input', { bubbles: true }));
               }
-              alert('Slack ID ' + s.slackId + ' filled!\nRun the pipeline, then click the extension to continue to Yopass.');
+
+              // Auto-click Build/Run button
+              setTimeout(function() {
+                var buildBtn = document.querySelector('button[name="Submit"]') ||
+                  Array.from(document.querySelectorAll('button,input[type="submit"]')).find(function(b) {
+                    return (b.textContent || b.value || '').match(/build|run|submit/i);
+                  });
+                if (buildBtn) buildBtn.click();
+
+                // After build, proceed to Yopass
+                setTimeout(function() {
+                  chrome.runtime.sendMessage({ action: 'step6_openYopass' });
+                }, 2000);
+              }, 500);
             }
           });
         }, 1000);
       }, 500);
-    }
-  });
-
-  // Listen for messages to proceed to yopass
-  chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
-    if (msg.action === 'proceedToYopass') {
-      chrome.runtime.sendMessage({ action: 'step6_openYopass' });
-      sendResponse({ ok: true });
     }
   });
 })();

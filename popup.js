@@ -31,11 +31,11 @@ document.getElementById('startBtn').addEventListener('click', function() {
   chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
     chrome.tabs.sendMessage(tabs[0].id, { action: 'startOnboarding' }, function(response) {
       if (chrome.runtime.lastError) {
-        alert('Please run this from a Jira ticket page.');
+        alert('Please run this from a Jira ticket page.\n\nError: ' + chrome.runtime.lastError.message);
         return;
       }
+      window.close();
     });
-    window.close();
   });
 });
 
