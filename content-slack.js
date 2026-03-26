@@ -20,9 +20,9 @@
   }
 
   function findCopyBtn() {
-    return Array.from(document.querySelectorAll('button[data-qa="menu_item_button"]')).find(function(b) {
-      return b.textContent.trim() === 'Copy member ID';
-    });
+    var labels = Array.from(document.querySelectorAll('.c-menu_item__label'));
+    var label = labels.find(function(l) { return l.textContent.trim() === 'Copy member ID'; });
+    return label;
   }
 
   chrome.runtime.sendMessage({ action: 'getState' }, function(state) {
@@ -63,6 +63,7 @@
                   if (!found) return;
                   clearInterval(l);
                   menuClick(found);
+                  simClick(found);
 
                   // Watchdog: poll clipboard, re-open menu and retry if needed
                   var attempts = 0;
@@ -82,7 +83,7 @@
                             moreBtn.click();
                             setTimeout(function() {
                               var copyBtn = findCopyBtn();
-                              if (copyBtn) menuClick(copyBtn);
+                              if (copyBtn) { menuClick(copyBtn); simClick(copyBtn); }
                             }, 1000);
                           }
                         }

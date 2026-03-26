@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.2-alpha
+
+### Attempted Fix
+- Slack Copy member ID: target inner .c-menu_item__label div instead of parent button
+- Fire both menuClick and simClick on the label as fallback
+
 ## 0.7.1-alpha
 
 ### Fixed
