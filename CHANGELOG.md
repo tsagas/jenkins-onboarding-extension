@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.7.1-alpha
+
+### Fixed
+- Slack Copy member ID: use data-qa="menu_item_button" selector and mousedown/mouseup/click sequence (final fix)
+
+## 0.7.0-alpha
+
+### Attempted Fix
+- Slack Copy member ID: tried plain .click() instead of simClick — still dismissed menu
+
+### Changed
+- Slack ID copy retry: re-opens More menu and retries every 3 seconds if clipboard empty
+- Yopass Generate Secret: broadened button selector to match by text content
+- Pipeline step 6: alert user to verify fields, only proceed to Yopass after Build is clicked
+
 ## 0.6.1-alpha
 
 ### Fixed
@@ -7,21 +22,23 @@
 
 ## 0.6.0-alpha
 
-### Fixed
-- Slack ID copy watchdog: poll clipboard every 500ms instead of single read attempt
-- Assign-roles now waits for Save button click before opening pipeline tab
+### Attempted Fix
+- Assign-roles: tried Save button click listener to trigger next step — failed because page navigation killed the script context
 
 ### Changed
+- Slack ID copy: clipboard watchdog polls every 500ms instead of single read attempt
 - Clear clipboard before opening Slack for clean watchdog baseline
 
 ## 0.5.0-alpha
 
 ### Fixed
 - Create User button not being clicked (broadened selector to match button text)
-- Flow stopping after Slack ID copy (now switches back to pipeline tab, fills Slack ID, re-copies full name, auto-builds)
+
+### Attempted Fix
+- Slack ID copy: polling loop from pipeline tab — failed because script context died when tab lost focus
 
 ### Changed
-- Background.js now tracks pipeline tab ID and re-injects content-jenkins.js after Slack ID is found
+- Track pipeline tab ID, re-inject content script after Slack ID is found
 - Split pipeline step into step 4 (fill + open Slack) and step 6 (fill Slack ID + build)
 
 ## 0.4.0-alpha
@@ -40,7 +57,6 @@
 - Auto-run alert targets pipeline after Slack ID is filled
 - Auto-send credentials message to user via Slack DM
 - Tab tracking — all opened tabs are closed automatically after completion
-- New step 7: Slack message sending (previously manual)
 - Stable extension ID via manifest key (no more duplicates on reload)
 - Custom extension icon
 
@@ -50,20 +66,18 @@
 - Yopass now triggers Slack message send instead of resolving Jira directly
 - Flow is now 8 steps instead of 7
 - Popup uses HTML entities for special characters (fixes encoding issues)
-- Jira content script restricted to *.atlassian.net (was matching all URLs)
 - Jira content script injected on demand via chrome.scripting.executeScript
 
 ### Fixed
 - UTF-8 charset declaration in popup (fixes garbled emoji/arrows)
 - Handle tickets already in "In Progress" state without hanging
 - Close status dropdown if "Start progress" option not found
-- Detect page navigation after assign-roles save to proceed to next step
 - "Could not establish connection" error on Jira pages
 
 ## 0.1.1-alpha
 
-### Fixed
-- Detect navigation after assign-roles save to auto-proceed to pipeline step
+### Attempted Fix
+- Detect navigation after assign-roles save to auto-proceed — unreliable across page reloads
 
 ## 0.1.0-alpha
 

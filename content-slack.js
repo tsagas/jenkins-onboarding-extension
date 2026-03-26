@@ -9,6 +9,22 @@
     });
   }
 
+  function menuClick(el) {
+    var r = el.getBoundingClientRect();
+    var x = r.left + r.width / 2;
+    var y = r.top + r.height / 2;
+    var opts = { bubbles: true, cancelable: true, clientX: x, clientY: y, view: window };
+    el.dispatchEvent(new MouseEvent('mousedown', opts));
+    el.dispatchEvent(new MouseEvent('mouseup', opts));
+    el.dispatchEvent(new MouseEvent('click', opts));
+  }
+
+  function findCopyBtn() {
+    return Array.from(document.querySelectorAll('button[data-qa="menu_item_button"]')).find(function(b) {
+      return b.textContent.trim() === 'Copy member ID';
+    });
+  }
+
   chrome.runtime.sendMessage({ action: 'getState' }, function(state) {
     if (!state || !state.username) return;
 
@@ -43,13 +59,10 @@
                 more.click();
 
                 var l = setInterval(function() {
-                  var found = Array.from(document.querySelectorAll('button[role="menuitem"]')).find(function(b) {
-                    return b.textContent.trim() === 'Copy member ID';
-                  });
+                  var found = findCopyBtn();
                   if (!found) return;
                   clearInterval(l);
-                  // Just native click — simClick's pointer events dismiss the menu
-                  found.click();
+                  menuClick(found);
 
                   // Watchdog: poll clipboard, re-open menu and retry if needed
                   var attempts = 0;
@@ -64,15 +77,12 @@
                       } else {
                         attempts++;
                         if (attempts % 6 === 0) {
-                          // Re-open the more menu and try again
                           var moreBtn = document.querySelector('[data-qa="member_profile_more_btn"]');
                           if (moreBtn) {
                             moreBtn.click();
                             setTimeout(function() {
-                              var copyBtn = Array.from(document.querySelectorAll('button[role="menuitem"]')).find(function(b) {
-                                return b.textContent.trim() === 'Copy member ID';
-                              });
-                              if (copyBtn) copyBtn.click();
+                              var copyBtn = findCopyBtn();
+                              if (copyBtn) menuClick(copyBtn);
                             }, 1000);
                           }
                         }
