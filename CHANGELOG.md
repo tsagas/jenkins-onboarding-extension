@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.4-alpha
+
+### Fixed
+- Slack Copy member ID: click empty space to defocus before opening More menu (fixes clipboard copy)
+- Also defocus before retry attempts
+
 ## 0.7.3-alpha
 
 ### Fixed

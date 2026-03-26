@@ -59,41 +59,48 @@
                 var more = document.querySelector('[data-qa="member_profile_more_btn"]');
                 if (!more) return;
                 clearInterval(k);
-                more.click();
+                // Click empty space to defocus, then open menu
+                document.body.click();
+                setTimeout(function() {
+                  more.click();
 
-                var l = setInterval(function() {
-                  var found = findCopyBtn();
-                  if (!found) return;
-                  clearInterval(l);
-                  menuClick(found);
-                  simClick(found);
+                  var l = setInterval(function() {
+                    var found = findCopyBtn();
+                    if (!found) return;
+                    clearInterval(l);
+                    menuClick(found);
+                    simClick(found);
 
-                  // Watchdog: poll clipboard, re-open menu and retry if needed
-                  var attempts = 0;
-                  var w = setInterval(function() {
-                    navigator.clipboard.readText().then(function(slackId) {
-                      if (slackId && slackId.match(/^U[A-Z0-9]+$/)) {
-                        clearInterval(w);
-                        chrome.runtime.sendMessage({
-                          action: 'step5_slackIdFound',
-                          slackId: slackId
-                        });
-                      } else {
-                        attempts++;
-                        if (attempts % 6 === 0) {
-                          var moreBtn = document.querySelector('[data-qa="member_profile_more_btn"]');
-                          if (moreBtn) {
-                            moreBtn.click();
+                    // Watchdog: poll clipboard, re-open menu and retry if needed
+                    var attempts = 0;
+                    var w = setInterval(function() {
+                      navigator.clipboard.readText().then(function(slackId) {
+                        if (slackId && slackId.match(/^U[A-Z0-9]+$/)) {
+                          clearInterval(w);
+                          chrome.runtime.sendMessage({
+                            action: 'step5_slackIdFound',
+                            slackId: slackId
+                          });
+                        } else {
+                          attempts++;
+                          if (attempts % 6 === 0) {
+                            document.body.click();
                             setTimeout(function() {
-                              var copyBtn = findCopyBtn();
-                              if (copyBtn) { menuClick(copyBtn); simClick(copyBtn); }
-                            }, 1000);
+                              var moreBtn = document.querySelector('[data-qa="member_profile_more_btn"]');
+                              if (moreBtn) {
+                                moreBtn.click();
+                                setTimeout(function() {
+                                  var copyBtn = findCopyBtn();
+                                  if (copyBtn) { menuClick(copyBtn); simClick(copyBtn); }
+                                }, 2000);
+                              }
+                            }, 500);
                           }
                         }
-                      }
-                    }).catch(function() {});
-                  }, 500);
-                }, 1000);
+                      }).catch(function() {});
+                    }, 500);
+                  }, 1000);
+                }, 500);
               }, 1000);
             }, 1000);
           }, 1000);
