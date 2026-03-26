@@ -1,26 +1,34 @@
 # Changelog
 
-## 0.7.4-alpha
+## 0.7.5-alpha
 
 ### Fixed
-- Slack Copy member ID: click empty space to defocus before opening More menu (fixes clipboard copy)
-- Also defocus before retry attempts
+- Slack Copy member ID: use focus()+click() on parent button, no synthetic mouse events, no retry loop
+- Slack: click sidebar to defocus before opening More menu
+
+### Changed
+- Pipeline step 6: alert user to verify fields, only proceed to Yopass after Build is clicked
+- Slack ID copy: clipboard watchdog polls every 500ms, no retry — user can copy manually if needed
+
+## 0.7.4-alpha
+
+### Attempted Fix
+- Slack Copy member ID: click empty space to defocus before opening More menu — body.click() landed in message box
 
 ## 0.7.3-alpha
 
-### Fixed
-- Slack Copy member ID: add mouseover/mouseenter/mousemove before click to simulate hover activation
+### Attempted Fix
+- Slack Copy member ID: add mouseover/mouseenter/mousemove before click to simulate hover activation — worked only after ~10 retries
 
 ## 0.7.2-alpha
 
 ### Attempted Fix
 - Slack Copy member ID: target inner .c-menu_item__label div instead of parent button
-- Fire both menuClick and simClick on the label as fallback
 
 ## 0.7.1-alpha
 
-### Fixed
-- Slack Copy member ID: use data-qa="menu_item_button" selector and mousedown/mouseup/click sequence (final fix)
+### Attempted Fix
+- Slack Copy member ID: use data-qa="menu_item_button" selector and mousedown/mouseup/click sequence
 
 ## 0.7.0-alpha
 

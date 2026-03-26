@@ -25,7 +25,8 @@
   function findCopyBtn() {
     var labels = Array.from(document.querySelectorAll('.c-menu_item__label'));
     var label = labels.find(function(l) { return l.textContent.trim() === 'Copy member ID'; });
-    return label;
+    if (label) return label.closest('button') || label;
+    return null;
   }
 
   chrome.runtime.sendMessage({ action: 'getState' }, function(state) {
@@ -59,8 +60,11 @@
                 var more = document.querySelector('[data-qa="member_profile_more_btn"]');
                 if (!more) return;
                 clearInterval(k);
-                // Click empty space to defocus, then open menu
-                document.body.click();
+                // Click neutral area outside message box to defocus, then open menu
+                var neutral = document.querySelector('[data-qa="channel_sidebar"]') ||
+                  document.querySelector('.p-workspace__sidebar') ||
+                  document.querySelector('.p-top_nav');
+                if (neutral) neutral.click();
                 setTimeout(function() {
                   more.click();
 
@@ -68,11 +72,10 @@
                     var found = findCopyBtn();
                     if (!found) return;
                     clearInterval(l);
-                    menuClick(found);
-                    simClick(found);
+                    found.focus();
+                    found.click();
 
-                    // Watchdog: poll clipboard, re-open menu and retry if needed
-                    var attempts = 0;
+                    // Watchdog: just poll clipboard, no retries
                     var w = setInterval(function() {
                       navigator.clipboard.readText().then(function(slackId) {
                         if (slackId && slackId.match(/^U[A-Z0-9]+$/)) {
@@ -81,21 +84,6 @@
                             action: 'step5_slackIdFound',
                             slackId: slackId
                           });
-                        } else {
-                          attempts++;
-                          if (attempts % 6 === 0) {
-                            document.body.click();
-                            setTimeout(function() {
-                              var moreBtn = document.querySelector('[data-qa="member_profile_more_btn"]');
-                              if (moreBtn) {
-                                moreBtn.click();
-                                setTimeout(function() {
-                                  var copyBtn = findCopyBtn();
-                                  if (copyBtn) { menuClick(copyBtn); simClick(copyBtn); }
-                                }, 2000);
-                              }
-                            }, 500);
-                          }
                         }
                       }).catch(function() {});
                     }, 500);
