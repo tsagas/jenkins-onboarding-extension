@@ -14,6 +14,9 @@
     var x = r.left + r.width / 2;
     var y = r.top + r.height / 2;
     var opts = { bubbles: true, cancelable: true, clientX: x, clientY: y, view: window };
+    el.dispatchEvent(new MouseEvent('mouseover', opts));
+    el.dispatchEvent(new MouseEvent('mouseenter', opts));
+    el.dispatchEvent(new MouseEvent('mousemove', opts));
     el.dispatchEvent(new MouseEvent('mousedown', opts));
     el.dispatchEvent(new MouseEvent('mouseup', opts));
     el.dispatchEvent(new MouseEvent('click', opts));

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.3-alpha
+
+### Fixed
+- Slack Copy member ID: add mouseover/mouseenter/mousemove before click to simulate hover activation
+
 ## 0.7.2-alpha
 
 ### Attempted Fix
