@@ -98,7 +98,7 @@
       }, 500);
     }
 
-    // Step 6: Back from Slack — fill Slack ID, re-copy name, build
+    // Step 6: Back from Slack — fill Slack ID, re-copy name, wait for user to Build
     if (url.includes('add-user-to-alert-targets') && state.step === 6) {
       var inputs = document.querySelectorAll('input[type="text"]');
       if (inputs.length >= 4) {
@@ -106,18 +106,19 @@
         inputs[3].dispatchEvent(new Event('input', { bubbles: true }));
       }
       navigator.clipboard.writeText(state.fullName);
+      alert('Slack ID filled. Verify all fields and click Build.');
 
-      setTimeout(function() {
-        var buildBtn = document.querySelector('button[name="Submit"]') ||
-          Array.from(document.querySelectorAll('button,input[type="submit"]')).find(function(b) {
-            return (b.textContent || b.value || '').match(/build|run|submit/i);
-          });
-        if (buildBtn) buildBtn.click();
-
-        setTimeout(function() {
-          chrome.runtime.sendMessage({ action: 'step6_openYopass' });
-        }, 3000);
-      }, 1000);
+      var buildBtn = document.querySelector('button[name="Submit"]') ||
+        Array.from(document.querySelectorAll('button,input[type="submit"]')).find(function(b) {
+          return (b.textContent || b.value || '').match(/build|run|submit/i);
+        });
+      if (buildBtn) {
+        buildBtn.addEventListener('click', function() {
+          setTimeout(function() {
+            chrome.runtime.sendMessage({ action: 'step6_openYopass' });
+          }, 3000);
+        });
+      }
     }
   });
 })();

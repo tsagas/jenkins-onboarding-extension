@@ -48,16 +48,11 @@
                   });
                   if (!found) return;
                   clearInterval(l);
-                  // Try multiple click methods and retry
-                  var attempts = 0;
-                  function tryClick() {
-                    simClick(found);
-                    found.click();
-                    found.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
-                  }
-                  tryClick();
+                  // Just native click — simClick's pointer events dismiss the menu
+                  found.click();
 
-                  // Watchdog: poll clipboard, retry click if needed
+                  // Watchdog: poll clipboard, re-open menu and retry if needed
+                  var attempts = 0;
                   var w = setInterval(function() {
                     navigator.clipboard.readText().then(function(slackId) {
                       if (slackId && slackId.match(/^U[A-Z0-9]+$/)) {
@@ -68,12 +63,21 @@
                         });
                       } else {
                         attempts++;
-                        if (attempts % 4 === 0) tryClick();
+                        if (attempts % 6 === 0) {
+                          // Re-open the more menu and try again
+                          var moreBtn = document.querySelector('[data-qa="member_profile_more_btn"]');
+                          if (moreBtn) {
+                            moreBtn.click();
+                            setTimeout(function() {
+                              var copyBtn = Array.from(document.querySelectorAll('button[role="menuitem"]')).find(function(b) {
+                                return b.textContent.trim() === 'Copy member ID';
+                              });
+                              if (copyBtn) copyBtn.click();
+                            }, 1000);
+                          }
+                        }
                       }
-                    }).catch(function() {
-                      attempts++;
-                      if (attempts % 4 === 0) tryClick();
-                    });
+                    }).catch(function() {});
                   }, 500);
                 }, 1000);
               }, 1000);
