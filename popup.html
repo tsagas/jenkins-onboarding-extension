@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+body { width: 320px; padding: 12px; font-family: -apple-system, sans-serif; font-size: 13px; }
+h3 { margin: 0 0 10px; font-size: 15px; }
+.step { padding: 6px 8px; margin: 4px 0; border-radius: 4px; background: #f5f5f5; display: flex; align-items: center; gap: 8px; }
+.step.active { background: #e3f2fd; border-left: 3px solid #1976d2; }
+.step.done { background: #e8f5e9; border-left: 3px solid #4caf50; }
+.step .num { font-weight: bold; min-width: 20px; }
+button { width: 100%; padding: 8px; margin-top: 8px; background: #1976d2; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; }
+button:hover { background: #1565c0; }
+button.secondary { background: #ff9800; }
+button.secondary:hover { background: #f57c00; }
+button.danger { background: #d32f2f; }
+button.danger:hover { background: #c62828; }
+.info { margin-top: 8px; padding: 6px; background: #fff3e0; border-radius: 4px; font-size: 12px; }
+</style>
+</head>
+<body>
+<h3>🔧 Jenkins Onboarding</h3>
+<div id="steps">
+  <div class="step" data-step="1"><span class="num">1</span> Jira &rarr; Mark In Progress &amp; Extract Name</div>
+  <div class="step" data-step="2"><span class="num">2</span> Jenkins &rarr; Create User Account</div>
+  <div class="step" data-step="3"><span class="num">3</span> Jenkins &rarr; Assign Developer Role</div>
+  <div class="step" data-step="4"><span class="num">4</span> Jenkins &rarr; Add to Alert Targets</div>
+  <div class="step" data-step="5"><span class="num">5</span> Slack &rarr; Get Member ID</div>
+  <div class="step" data-step="6"><span class="num">6</span> Yopass &rarr; Create Secret</div>
+  <div class="step" data-step="7"><span class="num">7</span> Slack &rarr; Send Credentials</div>
+  <div class="step" data-step="8"><span class="num">8</span> Jira &rarr; Resolve &amp; Comment</div>
+</div>
+<div id="info" class="info" style="display:none"></div>
+<button id="startBtn">Start Onboarding</button>
+<button id="continueBtn" class="secondary" style="display:none">&#9654; Continue</button>
+<button id="resetBtn" class="danger" style="display:none">Reset</button>
+<script src="popup.js"></script>
+</body>
+</html>
