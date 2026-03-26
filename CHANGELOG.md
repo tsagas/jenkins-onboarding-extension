@@ -1,14 +1,35 @@
 # Changelog
 
+## 0.8.1-beta
+
+### Added
+- Options page for configuring all URLs (chrome://extensions > Details > Extension options)
+- Continue button in popup to resume stuck flows
+- Config validation — warns user to configure before first use
+
+### Changed
+- All hardcoded URLs removed — fully configurable via options page
+- Yopass: use execCommand insertText for React compatibility, full event chain for Encrypt button
+- Slack: scan DOM attributes for member ID instead of clicking Copy member ID button
+- Pipeline: use beforeunload to detect Build navigation, poll for Resolve option in Jira
+
+### Fixed
+- Yopass Encrypt Message button not responding to synthetic clicks
+- Pipeline step 6 re-triggering after Build click
+- Jira false positive "Resolve option not found" alert
+- Alert message changed to "User added to list"
+- Added 2s delay after pipeline fill before opening Slack
+
 ## 0.7.5-alpha
 
 ### Fixed
-- Slack Copy member ID: use focus()+click() on parent button, no synthetic mouse events, no retry loop
-- Slack: click sidebar to defocus before opening More menu
+- Slack member ID: scan DOM attributes instead of clicking Copy member ID button (synthetic clicks can't trigger clipboard)
+- No more More menu interaction, no more message box fallthrough
 
 ### Changed
+- Added Continue button to popup for resuming stuck flows
+- Manifest version now matches release version
 - Pipeline step 6: alert user to verify fields, only proceed to Yopass after Build is clicked
-- Slack ID copy: clipboard watchdog polls every 500ms, no retry — user can copy manually if needed
 
 ## 0.7.4-alpha
 

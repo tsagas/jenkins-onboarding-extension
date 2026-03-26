@@ -12,23 +12,44 @@
       clearInterval(i);
 
       el.focus();
-      el.click();
-      var set = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set;
-      set.call(el, txt);
-      el.dispatchEvent(new Event('input', { bubbles: true }));
-      el.dispatchEvent(new Event('change', { bubbles: true }));
+      el.select();
+      document.execCommand('insertText', false, txt);
 
       setTimeout(function() {
         var radio = document.querySelector('input[name="expiration"][value="604800"]');
         if (radio) radio.click();
 
-        setTimeout(function() {
-          var btn = document.querySelector('button[type="submit"]') ||
-            Array.from(document.querySelectorAll('button')).find(function(b) {
-              return b.textContent.trim().match(/generate|encrypt|create/i);
-            });
-          if (btn) btn.click();
+        // Wait for button to become enabled, then smash it
+        var k = setInterval(function() {
+          var btn = Array.from(document.querySelectorAll('button')).find(function(b) {
+            return b.textContent.includes('Encrypt Message');
+          });
+          if (!btn || btn.disabled) return;
+          clearInterval(k);
 
+          var r = btn.getBoundingClientRect();
+          var x = r.left + r.width / 2;
+          var y = r.top + r.height / 2;
+          var opts = { bubbles: true, cancelable: true, clientX: x, clientY: y, view: window };
+
+          btn.focus();
+          btn.dispatchEvent(new MouseEvent('mouseover', opts));
+          btn.dispatchEvent(new MouseEvent('mouseenter', opts));
+          btn.dispatchEvent(new MouseEvent('mousemove', opts));
+          btn.dispatchEvent(new PointerEvent('pointerdown', opts));
+          btn.dispatchEvent(new MouseEvent('mousedown', opts));
+          btn.dispatchEvent(new PointerEvent('pointerup', opts));
+          btn.dispatchEvent(new MouseEvent('mouseup', opts));
+          btn.dispatchEvent(new MouseEvent('click', opts));
+          btn.click();
+
+          var form = btn.closest('form');
+          if (form) {
+            form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+            try { form.requestSubmit(btn); } catch(e) {}
+          }
+
+          // Poll for the generated link
           var j = setInterval(function() {
             var link = document.querySelector('#root .truncate');
             if (!link) return;
@@ -41,7 +62,7 @@
               message: msg
             });
           }, 1000);
-        }, 1000);
+        }, 500);
       }, 1000);
     }, 500);
   });

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Jenkins Onboarding",
-  "version": "1.0",
+  "version": "0.8.1",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAn2/rsDzBvZg59R5IcELm25nI8oTC7h6ce/9HXbKdhkmHH7UmEFe5i5RmDGEd4C+0w7D01vG6OrygN33KAutcWuIHGFKnuO02LOTHVi3wqtuOuDiL5/kfbHPkduAOLxHyaEfTd9DFEIkVvMPeh4BERkJTEOfbXdtEdUtfgxgQEaQItYF7G0+7Qx5C7wwTDOEE0sycF9eGIMdbE1zwpZN+YrelPuwXnomoYNMObgBK7rw1kLRQBMSf4uciGVdybRIU/nRAXO9bkxWmLWXQlp08Q+dddv2h26rJYjWt0j8Uqd9VR9IcsJj+uT/+uKA2zfAPELrfN3KlRkw+3PGc700XLwIDAQAB",
   "description": "Automate Jenkins user onboarding across Jira, Jenkins, Slack, and Yopass",
   "permissions": [
@@ -22,6 +22,7 @@
     "default_popup": "popup.html",
     "default_icon": "icon.png"
   },
+  "options_page": "options.html",
   "content_scripts": [
     {
       "matches": ["*://*/*"],

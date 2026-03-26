@@ -11,6 +11,8 @@ h3 { margin: 0 0 10px; font-size: 15px; }
 .step .num { font-weight: bold; min-width: 20px; }
 button { width: 100%; padding: 8px; margin-top: 8px; background: #1976d2; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; }
 button:hover { background: #1565c0; }
+button.secondary { background: #ff9800; }
+button.secondary:hover { background: #f57c00; }
 button.danger { background: #d32f2f; }
 button.danger:hover { background: #c62828; }
 .info { margin-top: 8px; padding: 6px; background: #fff3e0; border-radius: 4px; font-size: 12px; }
@@ -30,6 +32,7 @@ button.danger:hover { background: #c62828; }
 </div>
 <div id="info" class="info" style="display:none"></div>
 <button id="startBtn">Start Onboarding</button>
+<button id="continueBtn" class="secondary" style="display:none">&#9654; Continue</button>
 <button id="resetBtn" class="danger" style="display:none">Reset</button>
 <script src="popup.js"></script>
 </body>

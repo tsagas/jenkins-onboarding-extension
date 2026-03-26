@@ -66,7 +66,7 @@
               return c.name.includes('Developer') || (c.closest('tr') && c.closest('tr').textContent.includes('Developer'));
             });
             if (devCheckbox) devCheckbox.checked = true;
-            alert('Role assignment filled!\nSelect the appropriate roles and click Save.');
+            alert('User added to list!\nSelect the appropriate roles and click Save.');
 
           }, 1500);
         }, 1500);
@@ -92,9 +92,11 @@
           x.dispatchEvent(new Event('input', { bubbles: true }));
         });
         // Clear clipboard before opening Slack so watchdog has a clean baseline
-        navigator.clipboard.writeText('').then(function() {
-          chrome.runtime.sendMessage({ action: 'step4_openSlack' });
-        });
+        setTimeout(function() {
+          navigator.clipboard.writeText('').then(function() {
+            chrome.runtime.sendMessage({ action: 'step4_openSlack' });
+          });
+        }, 2000);
       }, 500);
     }
 
@@ -108,17 +110,9 @@
       navigator.clipboard.writeText(state.fullName);
       alert('Slack ID filled. Verify all fields and click Build.');
 
-      var buildBtn = document.querySelector('button[name="Submit"]') ||
-        Array.from(document.querySelectorAll('button,input[type="submit"]')).find(function(b) {
-          return (b.textContent || b.value || '').match(/build|run|submit/i);
-        });
-      if (buildBtn) {
-        buildBtn.addEventListener('click', function() {
-          setTimeout(function() {
-            chrome.runtime.sendMessage({ action: 'step6_openYopass' });
-          }, 3000);
-        });
-      }
+      window.addEventListener('beforeunload', function() {
+        chrome.runtime.sendMessage({ action: 'step6_openYopass' });
+      });
     }
   });
 })();

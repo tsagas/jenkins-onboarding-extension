@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+body { width: 400px; padding: 16px; font-family: -apple-system, sans-serif; font-size: 13px; }
+h3 { margin: 0 0 12px; font-size: 15px; }
+label { display: block; margin-top: 10px; font-weight: bold; }
+input { width: 100%; padding: 6px; margin-top: 4px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; box-sizing: border-box; }
+button { width: 100%; padding: 8px; margin-top: 14px; background: #1976d2; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; }
+button:hover { background: #1565c0; }
+.saved { color: #4caf50; margin-top: 8px; display: none; font-weight: bold; }
+.hint { color: #888; font-size: 11px; margin-top: 2px; }
+</style>
+</head>
+<body>
+<h3>&#9881; Jenkins Onboarding Settings</h3>
+
+<label>Jenkins Domain</label>
+<input id="jenkinsDomain" placeholder="jenkins.example.com">
+<div class="hint">Used for URLs and credentials message</div>
+
+<label>Yopass Domain</label>
+<input id="yopassDomain" placeholder="yopass.example.com">
+<div class="hint">https:// is added automatically</div>
+
+<label>Slack Base URL</label>
+<input id="slackBase" placeholder="https://app.slack.com">
+<div class="hint">Default: https://app.slack.com</div>
+
+<label>Email Domain</label>
+<input id="emailDomain" placeholder="example.com">
+<div class="hint">Used to generate username@domain</div>
+
+<button id="saveBtn">Save</button>
+<div id="saved" class="saved">&#10003; Settings saved</div>
+
+<script src="options.js"></script>
+</body>
+</html>

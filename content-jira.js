@@ -62,11 +62,12 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     if (!statusBtn) { alert('Status button not found'); return; }
 
     statusBtn.click();
-    setTimeout(function() {
+    var r = setInterval(function() {
       var resolve = Array.from(document.querySelectorAll('span')).find(function(s) {
         return s.textContent.trim() === 'Resolve (no testing needed)';
       });
-      if (!resolve) { alert('Resolve option not found'); return; }
+      if (!resolve) return;
+      clearInterval(r);
       resolve.closest('div').click();
 
       var i = setInterval(function() {

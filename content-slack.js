@@ -9,30 +9,23 @@
     });
   }
 
-  function menuClick(el) {
-    var r = el.getBoundingClientRect();
-    var x = r.left + r.width / 2;
-    var y = r.top + r.height / 2;
-    var opts = { bubbles: true, cancelable: true, clientX: x, clientY: y, view: window };
-    el.dispatchEvent(new MouseEvent('mouseover', opts));
-    el.dispatchEvent(new MouseEvent('mouseenter', opts));
-    el.dispatchEvent(new MouseEvent('mousemove', opts));
-    el.dispatchEvent(new MouseEvent('mousedown', opts));
-    el.dispatchEvent(new MouseEvent('mouseup', opts));
-    el.dispatchEvent(new MouseEvent('click', opts));
-  }
-
-  function findCopyBtn() {
-    var labels = Array.from(document.querySelectorAll('.c-menu_item__label'));
-    var label = labels.find(function(l) { return l.textContent.trim() === 'Copy member ID'; });
-    if (label) return label.closest('button') || label;
+  function findMemberId() {
+    // Search all elements for data attributes containing a Slack user ID
+    var all = document.querySelectorAll('*');
+    for (var i = 0; i < all.length; i++) {
+      var el = all[i];
+      for (var j = 0; j < el.attributes.length; j++) {
+        var val = el.attributes[j].value;
+        if (val && val.match(/^U[A-Z0-9]{8,}$/)) return val;
+      }
+    }
     return null;
   }
 
   chrome.runtime.sendMessage({ action: 'getState' }, function(state) {
     if (!state || !state.username) return;
 
-    // Step 5: Search for user and copy member ID
+    // Step 5: Search for user and get member ID
     if (state.step === 5) {
       setTimeout(function() {
         var searchBtn = document.querySelector('[data-qa="top_nav_search"]');
@@ -56,39 +49,31 @@
               clearInterval(j);
               name.click();
 
+              // Wait for profile panel, then scan DOM for member ID
               var k = setInterval(function() {
-                var more = document.querySelector('[data-qa="member_profile_more_btn"]');
-                if (!more) return;
-                clearInterval(k);
-                // Click neutral area outside message box to defocus, then open menu
-                var neutral = document.querySelector('[data-qa="channel_sidebar"]') ||
-                  document.querySelector('.p-workspace__sidebar') ||
-                  document.querySelector('.p-top_nav');
-                if (neutral) neutral.click();
-                setTimeout(function() {
-                  more.click();
+                var header = document.querySelector('.p-flexpane_header__primary');
+                if (!header) return;
 
-                  var l = setInterval(function() {
-                    var found = findCopyBtn();
-                    if (!found) return;
-                    clearInterval(l);
-                    found.focus();
-                    found.click();
+                var memberId = findMemberId();
+                if (memberId) {
+                  clearInterval(k);
+                  chrome.runtime.sendMessage({
+                    action: 'step5_slackIdFound',
+                    slackId: memberId
+                  });
+                  return;
+                }
 
-                    // Watchdog: just poll clipboard, no retries
-                    var w = setInterval(function() {
-                      navigator.clipboard.readText().then(function(slackId) {
-                        if (slackId && slackId.match(/^U[A-Z0-9]+$/)) {
-                          clearInterval(w);
-                          chrome.runtime.sendMessage({
-                            action: 'step5_slackIdFound',
-                            slackId: slackId
-                          });
-                        }
-                      }).catch(function() {});
-                    }, 500);
-                  }, 1000);
-                }, 500);
+                // Fallback: check clipboard in case user copies manually
+                navigator.clipboard.readText().then(function(clip) {
+                  if (clip && clip.match(/^U[A-Z0-9]+$/)) {
+                    clearInterval(k);
+                    chrome.runtime.sendMessage({
+                      action: 'step5_slackIdFound',
+                      slackId: clip
+                    });
+                  }
+                }).catch(function() {});
               }, 1000);
             }, 1000);
           }, 1000);
@@ -100,7 +85,6 @@
   // Listen for message to send in the DM
   chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     if (msg.action === 'sendMessage') {
-      // Close any open profile/search panels by pressing Escape
       document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, bubbles: true }));
 
       setTimeout(function() {
@@ -132,12 +116,10 @@
 
   function typeAndSend(editor, message) {
     editor.focus();
-    // Convert newlines to <p> tags for Slack's editor
     var html = message.split('\n').map(function(line) { return '<p>' + line + '</p>'; }).join('');
     editor.innerHTML = html;
     editor.dispatchEvent(new Event('input', { bubbles: true }));
 
-    // Send the message by pressing Enter
     setTimeout(function() {
       editor.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, bubbles: true }));
 

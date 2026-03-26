@@ -20,6 +20,18 @@ Turns a multi-step manual onboarding process into a guided, mostly automated flo
 2. Open `chrome://extensions/` in Chrome
 3. Enable **Developer mode** (top right)
 4. Click **Load unpacked** → select the cloned folder
+5. Go to the extension's **Details** → **Extension options** and configure your URLs
+
+## Configuration
+
+After installation, open the extension options and fill in:
+
+| Field | Example |
+|-------|---------|
+| Jenkins Domain | `jenkins.example.com` |
+| Yopass Domain | `yopass.example.com` |
+| Slack Base URL | `https://app.slack.com` (default) |
+| Email Domain | `example.com` |
 
 ## Usage
 
@@ -27,21 +39,12 @@ Turns a multi-step manual onboarding process into a guided, mostly automated flo
 2. Click the extension icon → **Start Onboarding**
 3. Follow the prompts — each step auto-fills forms and opens the next page when ready
 
-The extension popup shows the current step and user details throughout the process. Click **Reset** to start over.
-
-## Supported Sites
-
-| Site | URL |
-|------|-----|
-| Jira | `*.atlassian.net` |
-| Jenkins | `jenkins.hfmarkets.com` |
-| Slack | `app.slack.com` |
-| Yopass | `yopass.hfmarkets.com` |
+The extension popup shows the current step and user details throughout the process. Use **Continue** to resume a stuck flow, or **Reset** to start over.
 
 ## Permissions
 
 - **activeTab / scripting** — interact with page content
-- **storage** — persist onboarding state across tabs
+- **storage** — persist onboarding state and configuration across tabs
 - **tabs** — open and switch between tabs
 - **clipboardRead / clipboardWrite** — read/write clipboard for Slack Member ID and message generation
 

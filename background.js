@@ -1,11 +1,16 @@
-// URL configuration — change these to match your environment
+// URL configuration — loaded from extension options
 var CONFIG = {
-  jenkinsBase: 'https://jenkins.hfmarkets.com',
-  yopassBase: 'https://yopass.hfmarkets.com',
+  jenkinsBase: '',
+  yopassBase: '',
   slackBase: 'https://app.slack.com',
-  emailDomain: 'hfm.com',
-  jenkinsDomain: 'jenkins.hfm.com'
+  emailDomain: '',
+  jenkinsDomain: ''
 };
+
+// Load config from storage
+chrome.storage.local.get('config', function(data) {
+  if (data.config) Object.assign(CONFIG, data.config);
+});
 
 // State management
 let state = {
