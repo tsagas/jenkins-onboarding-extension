@@ -4,19 +4,36 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
   if (msg.action === 'startOnboarding') {
     // Only handle on Jira-like pages or any page (for the prompt fallback)
     var t = document.body.innerText;
-    var m = t.match(/(?:User|user|Name|name):\s*([A-Z][a-z]+)\s+([A-Z][a-z]+)/);
-    var n;
-    if (!m) {
+    // Extract full name - match "Name:" or "Full Name:" but not "Username:"
+    var nameLines = t.split(/\r?\n/);
+    var n = null;
+    for (var i = 0; i < nameLines.length; i++) {
+      var line = nameLines[i].trim();
+      var nameMatch = line.match(/^(?:(?:Full\s*)?[Nn]ame|[Uu]ser):\s*(.+)/);
+      if (nameMatch && !line.match(/^[Uu]sername/)) {
+        n = nameMatch[1].trim();
+        break;
+      }
+    }
+    if (!n) {
       n = prompt('Enter full name (e.g., Daniil Yakush):');
       if (!n) { sendResponse({ ok: false }); return true; }
+    }
+
+    // Try to extract username from ticket body (e.g. "Username: example_username")
+    var usernameMatch = t.match(/[Uu]sername:\s*(\S+)/);
+    var username;
+    if (usernameMatch) {
+      username = usernameMatch[1];
     } else {
-      n = m[1] + ' ' + m[2];
+      username = prompt('Enter username for ' + n + ':');
+      if (!username) { sendResponse({ ok: false }); return true; }
     }
 
     var ticketMatch = location.pathname.match(/([A-Z]+-\d+)/);
     var ticket = ticketMatch ? ticketMatch[1] : '';
 
-    chrome.runtime.sendMessage({ action: 'step1_start', fullName: n, ticket: ticket });
+    chrome.runtime.sendMessage({ action: 'step1_start', fullName: n, username: username, ticket: ticket });
 
     // Copy name to clipboard for other forms
     navigator.clipboard.writeText(n);

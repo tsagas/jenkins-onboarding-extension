@@ -2,9 +2,11 @@ function updateUI(state) {
   var steps = document.querySelectorAll('.step');
   steps.forEach(function(el) {
     var s = parseInt(el.dataset.step);
-    el.classList.remove('active', 'done');
+    el.classList.remove('active', 'done', 'clickable');
     if (s < state.step) el.classList.add('done');
     else if (s === state.step) el.classList.add('active');
+    // Make steps clickable when onboarding is active
+    if (state.step > 0) el.classList.add('clickable');
   });
 
   var info = document.getElementById('info');
@@ -29,6 +31,38 @@ function updateUI(state) {
     resetBtn.style.display = 'none';
   }
 }
+
+var stepActions = {
+  1: 'step1_openJenkins',
+  2: 'step2_openAssignRoles',
+  3: 'step3_openPipeline',
+  4: 'step4_openSlack',
+  5: 'step4_openSlack',
+  6: 'step6_openYopass',
+  7: 'step6_openYopass',
+  8: 'step8_resolveJira'
+};
+
+function jumpToStep(targetStep) {
+  var action = stepActions[targetStep];
+  if (!action) return;
+  // Update the state step first, then trigger the action
+  chrome.runtime.sendMessage({ action: 'setState', data: { step: targetStep } }, function() {
+    chrome.runtime.sendMessage({ action: action });
+    window.close();
+  });
+}
+
+// Make each step clickable
+document.querySelectorAll('.step').forEach(function(el) {
+  el.addEventListener('click', function() {
+    chrome.runtime.sendMessage({ action: 'getState' }, function(state) {
+      if (state.step === 0) return; // Not started yet
+      var targetStep = parseInt(el.dataset.step);
+      jumpToStep(targetStep);
+    });
+  });
+});
 
 document.getElementById('startBtn').addEventListener('click', function() {
   chrome.storage.local.get('config', function(data) {
@@ -58,21 +92,7 @@ document.getElementById('startBtn').addEventListener('click', function() {
 
 document.getElementById('continueBtn').addEventListener('click', function() {
   chrome.runtime.sendMessage({ action: 'getState' }, function(state) {
-    var stepActions = {
-      1: 'step1_openJenkins',
-      2: 'step2_openAssignRoles',
-      3: 'step3_openPipeline',
-      4: 'step4_openSlack',
-      5: 'step4_openSlack',
-      6: 'step6_openYopass',
-      7: 'step6_openYopass',
-      8: 'step8_resolveJira'
-    };
-    var action = stepActions[state.step];
-    if (action) {
-      chrome.runtime.sendMessage({ action: action });
-      window.close();
-    }
+    jumpToStep(state.step);
   });
 });
 

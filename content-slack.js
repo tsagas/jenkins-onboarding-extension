@@ -37,7 +37,7 @@
           if (!el || el.getAttribute('aria-label') !== 'Query') return;
           clearInterval(i);
 
-          el.innerHTML = '<p>' + state.username + '</p>';
+          el.innerHTML = '<p>' + state.fullName + '</p>';
           el.dispatchEvent(new Event('input', { bubbles: true }));
 
           setTimeout(function() {

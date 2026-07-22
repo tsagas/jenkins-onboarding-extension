@@ -36,10 +36,9 @@ function saveState() {
   chrome.storage.local.set({ onboardState: state });
 }
 
-function setName(name) {
-  var p = name.trim().split(' ');
+function setName(name, username) {
   state.fullName = name.trim();
-  state.username = p[0][0].toLowerCase() + p[p.length - 1].toLowerCase();
+  state.username = username.trim().toLowerCase();
   state.email = state.username + '@' + CONFIG.emailDomain;
   saveState();
 }
@@ -81,7 +80,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
   if (msg.action === 'step1_start') {
     state.jiraTabId = sender.tab.id;
     state.jiraTicket = msg.ticket;
-    setName(msg.fullName);
+    setName(msg.fullName, msg.username);
     state.step = 1;
     saveState();
     sendResponse(state);
