@@ -4,15 +4,16 @@ A Chrome extension that automates the Jenkins user onboarding process across Jir
 
 ## What it does
 
-Turns a multi-step manual onboarding process into a guided, mostly automated flow:
+Turns a multi-step manual onboarding process into a guided, automated flow:
 
 1. **Jira** → Extracts user name from ticket, marks it as In Progress
 2. **Jenkins** → Creates user account (username, email, password)
 3. **Jenkins** → Assigns Developer role
-4. **Jenkins** → Fills the alert targets pipeline form
-5. **Slack** → Searches for the user, copies their Member ID back to the pipeline form
-6. **Yopass** → Creates an encrypted secret with credentials and copies a ready-to-send Slack message
-7. **Jira** → Resolves the ticket and adds a completion comment
+4. **Jenkins** - **Company specific** → Opens and fills the alert targets pipeline form
+5. **Slack** - **Company specific** → Searches for the user, copies their Member ID back to the pipeline form
+6. **Yopass** → Creates an encrypted secret with credentials and creates a ready-to-send Slack message
+7. **Slack** → Sends the message with instructions to the user
+8. **Jira** → Resolves the ticket and adds a completion comment
 
 ## Installation
 
@@ -30,7 +31,7 @@ After installation, open the extension options and fill in:
 |-------|---------|
 | Jenkins Domain | `jenkins.example.com` |
 | Yopass Domain | `yopass.example.com` |
-| Slack Base URL | `https://app.slack.com` (default) |
+| Slack Base URL | `https://app.slack.com` |
 | Email Domain | `example.com` |
 
 ## Usage
