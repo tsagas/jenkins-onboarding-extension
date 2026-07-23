@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.0.0
+
+### Changed
+- Username is now extracted separately from full name in Jira tickets (supports explicit `Username:` field)
+- Username no longer auto-derived from first initial + last name — prompts if not found in ticket
+- Slack people search now uses full name instead of username for more reliable results
+- Popup steps are now clickable — jump to any step during an active onboarding flow
+
+### Fixed
+- Username/full name confusion causing incorrect account creation and Slack lookups
+
+### Internal
+- Refactored stepActions to shared scope for reuse between Continue button and step click handlers
+
 ## 0.8.1-beta
 
 ### Added
