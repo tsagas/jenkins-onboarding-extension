@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.1.0
+
+### Changed
+- Firefox compatibility: background declared as both `scripts` (Firefox event page) and `service_worker` (Chrome), plus a stable Gecko add-on ID. Chrome behavior is unchanged.
+- On Firefox, site permissions must be granted per-domain on first use, and clipboard convenience copies (name/username to clipboard, pre-Slack clipboard clear) and the clipboard-read fallback are unavailable due to browser restrictions — no flow step depends on them; all data is carried in extension state.
+
 ## 2.0.1
 
 ### Fixed
