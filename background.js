@@ -114,6 +114,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     state.jiraTicket = msg.ticket;
     setName(msg.fullName, msg.username);
     state.step = 1;
+    state.manual = false;
     saveState();
     sendResponse(state);
     return;
@@ -162,6 +163,9 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
   // Step 5: Slack ID found — switch back to pipeline tab and re-inject
   if (msg.action === 'step5_slackIdFound') {
     state.slackId = msg.slackId;
+    saveState();
+    // Manual step click: store the ID but stay on step 5
+    if (state.manual) { sendResponse(state); return; }
     state.step = 6;
     saveState();
     if (state.pipelineTabId) {

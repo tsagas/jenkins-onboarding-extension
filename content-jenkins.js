@@ -33,14 +33,14 @@
         if (submitBtn) submitBtn.click();
 
         window.addEventListener('beforeunload', function() {
-          chrome.runtime.sendMessage({ action: 'step2_openAssignRoles' });
+          if (!state.manual) chrome.runtime.sendMessage({ action: 'step2_openAssignRoles' });
         });
       }, 1000);
     }
 
     // Step 2 continued: after addUser submission, page may show success or redirect
     if (url.includes('securityRealm') && !url.includes('addUser') && state.step === 2) {
-      chrome.runtime.sendMessage({ action: 'step2_openAssignRoles' });
+      if (!state.manual) chrome.runtime.sendMessage({ action: 'step2_openAssignRoles' });
       return;
     }
 
@@ -97,7 +97,7 @@
 
     // Step 3 continued: landed back on /manage/role-strategy/ after Save
     if (url.match(/\/manage\/role-strategy\/?$/) && state.step === 3 && state.assignRolesDone) {
-      chrome.runtime.sendMessage({ action: 'step3_openPipeline' });
+      if (!state.manual) chrome.runtime.sendMessage({ action: 'step3_openPipeline' });
       return;
     }
 
@@ -115,6 +115,7 @@
         });
         // Clear clipboard before opening Slack so watchdog has a clean baseline
         setTimeout(function() {
+          if (state.manual) return;
           navigator.clipboard.writeText('').catch(function() {}).then(function() {
             chrome.runtime.sendMessage({ action: 'step4_openSlack' });
           });
@@ -133,7 +134,7 @@
       alert('Slack ID filled. Verify all fields and click Build.');
 
       window.addEventListener('beforeunload', function() {
-        chrome.runtime.sendMessage({ action: 'step6_openYopass' });
+        if (!state.manual) chrome.runtime.sendMessage({ action: 'step6_openYopass' });
       });
     }
   });

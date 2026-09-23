@@ -57,6 +57,9 @@
 
             var msg = 'Hi, please find below your jenkins credentials.\nThe secret has expiry date, please open it in a timely manner.\n' + link.textContent;
 
+            // Manual step click: stop here — the link is on screen to copy/send by hand
+            if (state.manual) return;
+
             chrome.runtime.sendMessage({
               action: 'step7_sendSlackMessage',
               message: msg

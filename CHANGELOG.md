@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.0.1
+
+### Fixed
+- Clicking step 1 from the ticket page before starting now runs the full start flow (collect info, set In Progress, open Jenkins) instead of doing nothing
+
+### Changed
+- Clicking a step during an active flow now runs only that step — the flow no longer auto-advances once it completes; the next step stays clickable for manual control. Start Onboarding still runs the full flow end to end (including the pre-start step 1 click).
+
 ## 2.0.0
 
 ### Changed

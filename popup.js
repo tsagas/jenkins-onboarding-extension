@@ -51,8 +51,12 @@ var stepActions = {
 function jumpToStep(targetStep) {
   var action = stepActions[targetStep];
   if (!action) return;
-  chrome.runtime.sendMessage({ action: action }, function() {
-    window.close();
+  // A manual step click runs only that step — set the flag the content
+  // scripts check so they stop instead of chaining to the next step.
+  chrome.runtime.sendMessage({ action: 'setState', data: { manual: true } }, function() {
+    chrome.runtime.sendMessage({ action: action }, function() {
+      window.close();
+    });
   });
 }
 
@@ -82,12 +86,14 @@ document.querySelectorAll('.step').forEach(function(el) {
             target: { tabId: tab.id },
             files: ['content-jira.js']
           }, function() {
+            var msg = targetStep === 1 ? 'startOnboarding' : 'collectUserInfo';
             setTimeout(function() {
-              chrome.tabs.sendMessage(tab.id, { action: 'collectUserInfo' }, function(response) {
+              chrome.tabs.sendMessage(tab.id, { action: msg }, function(response) {
                 if (chrome.runtime.lastError || !response || !response.ok) {
                   alert('Could not read the ticket details.');
                   return;
                 }
+                if (targetStep === 1) { window.close(); return; }
                 jumpToStep(targetStep);
               });
             }, 200);
