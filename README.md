@@ -1,6 +1,6 @@
 # Jenkins Onboarding Extension
 
-A Chrome extension that automates the Jenkins user onboarding process across Jira, Jenkins, Slack, and Yopass.
+A Chrome/Firefox extension that automates the Jenkins user onboarding process across Jira, Jenkins, Slack, and Yopass.
 
 ## What it does
 
@@ -23,6 +23,21 @@ Turns a multi-step manual onboarding process into a guided, automated flow:
 4. Click **Load unpacked** → select the cloned folder
 5. Go to the extension's **Details** → **Extension options** and configure your URLs
 
+## Firefox installation
+
+The same manifest works on Firefox (109+); Firefox uses the `background.scripts` key while Chrome uses `service_worker`:
+
+1. Clone this repo
+2. Open `about:debugging#/runtime/this-firefox`
+3. Click **Load Temporary Add-on…** → select `manifest.json` from the cloned folder
+4. Grant site permissions when prompted — Firefox asks per-domain (Jira, Jenkins, Slack, Yopass) on first use
+5. Configure the extension options as above
+
+Notes on Firefox:
+
+- Temporary add-ons are removed when Firefox restarts — reload via `about:debugging` for each session. For a permanent install, submit the extension to [addons.mozilla.org](https://addons.mozilla.org/developers/) for signing.
+- Clipboard convenience copies (name/username to clipboard, clipboard fallback for the Slack Member ID) are unavailable due to Firefox gesture restrictions. No flow step depends on them — all data is carried in the extension's own state.
+
 ## Configuration
 
 After installation, open the extension options and fill in:
@@ -40,7 +55,7 @@ After installation, open the extension options and fill in:
 2. Click the extension icon → **Start Onboarding**
 3. Follow the prompts — each step auto-fills forms and opens the next page when ready
 
-The extension popup shows the current step and user details throughout the process. Use **Continue** to resume a stuck flow, or **Reset** to start over.
+The extension popup shows the current step and user details throughout the process. Steps in the popup are clickable: during an active flow, clicking a step jumps to it and runs **only that step** (the flow stops after it completes), and before starting you can click any step directly from the ticket page to jump straight to it. **Start Onboarding** runs the whole flow end to end. Use **Continue** to re-run the current step, or **Reset** to start over.
 
 ## Permissions
 
@@ -51,4 +66,4 @@ The extension popup shows the current step and user details throughout the proce
 
 ## How it works
 
-The extension uses a background service worker to maintain state across all tabs. Content scripts on each site listen for state changes and perform the appropriate actions. Communication between tabs happens via `chrome.runtime.sendMessage`, eliminating the cross-origin limitations of bookmarklets.
+The extension uses a background service worker (Chrome) or event page (Firefox) to maintain state across all tabs. Content scripts on each site listen for state changes and perform the appropriate actions. Communication between tabs happens via `chrome.runtime.sendMessage`, eliminating the cross-origin limitations of bookmarklets.
