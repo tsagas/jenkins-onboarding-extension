@@ -47,7 +47,15 @@
               var name = document.querySelector('[data-qa="member_name"]');
               if (!name) return;
               clearInterval(j);
-              name.click();
+
+              // Only auto-open the result if it actually matches the person we searched
+              var found = (name.textContent || '').replace(/\s+/g, ' ').trim().toLowerCase();
+              var wanted = state.fullName.replace(/\s+/g, ' ').trim().toLowerCase();
+              if (found === wanted || found.indexOf(wanted) !== -1 || wanted.indexOf(found) !== -1) {
+                name.click();
+              } else {
+                alert('User "' + state.fullName + '" was not found in the search results.\nPlease search for them manually and open their profile — the flow will continue automatically.');
+              }
 
               // Wait for profile panel, then scan DOM for member ID
               var k = setInterval(function() {

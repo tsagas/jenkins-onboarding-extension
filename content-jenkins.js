@@ -44,37 +44,59 @@
       return;
     }
 
-    // Step 3: Fill assign-roles, wait for user to Save
-    if (url.includes('role-strategy/assign-roles') && state.step === 3) {
+    // Step 3: role-strategy page — switch to Assign Roles, add user, check Developer
+    if (url.includes('/manage/role-strategy/') && state.step === 3 && !state.assignRolesDone) {
       var i = setInterval(function() {
-        var addBtn = Array.from(document.querySelectorAll('button,input[type="button"],a')).find(function(b) {
-          return (b.textContent || b.value || '').toLowerCase().includes('add user');
+        var tab = Array.from(document.querySelectorAll('a,button')).find(function(el) {
+          return (el.textContent || '').trim() === 'Assign Roles';
         });
+        if (tab) tab.click();
+        var addBtn = document.querySelector('.role-strategy-add-button');
         if (!addBtn) return;
         clearInterval(i);
         addBtn.click();
         setTimeout(function() {
-          var userInput = document.querySelector('input[name="user"]') || document.querySelector('input[type="text"]:not([readonly])');
+          var userInput = document.querySelector('.jenkins-dialog input[data-id="input"]') ||
+            document.querySelector('input[name="user"]');
           if (userInput) {
             userInput.value = state.username;
             userInput.dispatchEvent(new Event('input', { bubbles: true }));
             userInput.dispatchEvent(new Event('change', { bubbles: true }));
-            userInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, bubbles: true }));
+            var okBtn = document.querySelector('.jenkins-dialog button[data-id="ok"]');
+            setTimeout(function() {
+              if (okBtn && !okBtn.disabled) okBtn.click();
+              else userInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, bubbles: true }));
+            }, 300);
           }
           setTimeout(function() {
-            var devCheckbox = Array.from(document.querySelectorAll('input[type="checkbox"]')).find(function(c) {
-              return c.name.includes('Developer') || (c.closest('tr') && c.closest('tr').textContent.includes('Developer'));
+            var checked = false;
+            var row = Array.from(document.querySelectorAll('tr')).find(function(tr) {
+              return tr.textContent.toLowerCase().includes(state.username);
             });
-            if (devCheckbox) devCheckbox.checked = true;
-            alert('User added to list!\nSelect the appropriate roles and click Save.');
-
-          }, 1500);
-        }, 1500);
+            if (row) {
+              var table = row.closest('table');
+              var headers = table ? Array.from(table.querySelectorAll('thead th')).map(function(th) { return th.textContent.trim(); }) : [];
+              var cells = row.querySelectorAll('td');
+              for (var c = 0; c < cells.length; c++) {
+                var cb = cells[c].querySelector('input[type="checkbox"]');
+                if (cb && ((cb.name && cb.name.includes('Developer')) || (headers[c] && headers[c].includes('Developer')))) {
+                  cb.checked = true;
+                  checked = true;
+                  break;
+                }
+              }
+            }
+            chrome.runtime.sendMessage({ action: 'setState', data: { assignRolesDone: true } });
+            alert(checked
+              ? 'User added to list!\nSelect the appropriate roles and click Save.'
+              : 'Could not auto-check Developer — assign the roles manually and click Save.');
+          }, 2000);
+        }, 800);
       }, 500);
     }
 
-    // Step 3 continued: landed on /role-strategy/ after Save redirect
-    if (url.match(/role-strategy\/?$/) && state.step === 3) {
+    // Step 3 continued: landed back on /manage/role-strategy/ after Save
+    if (url.match(/\/manage\/role-strategy\/?$/) && state.step === 3 && state.assignRolesDone) {
       chrome.runtime.sendMessage({ action: 'step3_openPipeline' });
       return;
     }
@@ -93,7 +115,7 @@
         });
         // Clear clipboard before opening Slack so watchdog has a clean baseline
         setTimeout(function() {
-          navigator.clipboard.writeText('').then(function() {
+          navigator.clipboard.writeText('').catch(function() {}).then(function() {
             chrome.runtime.sendMessage({ action: 'step4_openSlack' });
           });
         }, 2000);
@@ -107,7 +129,7 @@
         inputs[3].value = state.slackId;
         inputs[3].dispatchEvent(new Event('input', { bubbles: true }));
       }
-      navigator.clipboard.writeText(state.fullName);
+      navigator.clipboard.writeText(state.fullName).catch(function() {});
       alert('Slack ID filled. Verify all fields and click Build.');
 
       window.addEventListener('beforeunload', function() {

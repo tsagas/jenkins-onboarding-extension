@@ -3,6 +3,7 @@ var CONFIG = {
   jenkinsBase: '',
   yopassBase: '',
   slackBase: 'https://app.slack.com',
+  jiraBase: '',
   emailDomain: '',
   jenkinsDomain: ''
 };
@@ -56,6 +57,37 @@ function closeAllOpenedTabs() {
   saveState();
 }
 
+// Activate a tracked tab, or open a fresh one if it no longer exists
+function useOrOpenTab(tabId, url, cb) {
+  var open = function() {
+    if (!url) return;
+    chrome.tabs.create({ url: url }, function(tab) { if (cb) cb(tab.id, true); });
+  };
+  if (!tabId) { open(); return; }
+  chrome.tabs.get(tabId, function(tab) {
+    if (chrome.runtime.lastError) { open(); return; }
+    chrome.tabs.update(tabId, { active: true }, function() { if (cb) cb(tabId, false); });
+  });
+}
+
+function openJiraTab(cb) {
+  var url = (CONFIG.jiraBase && state.jiraTicket) ? CONFIG.jiraBase + '/browse/' + state.jiraTicket : null;
+  useOrOpenTab(state.jiraTabId, url, function(tabId) {
+    state.jiraTabId = tabId;
+    saveState();
+    if (cb) cb(tabId);
+  });
+}
+
+function openPipelineTab() {
+  chrome.tabs.create({ url: CONFIG.jenkinsBase + '/job/add-user-to-alert-targets/build?delay=0sec' }, function(tab) {
+    trackTab(tab);
+    state.pipelineTabId = tab.id;
+    state.step = 4;
+    saveState();
+  });
+}
+
 chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
 
   if (msg.action === 'getState') {
@@ -99,7 +131,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
 
   // Step 2: open assign-roles
   if (msg.action === 'step2_openAssignRoles') {
-    chrome.tabs.create({ url: CONFIG.jenkinsBase + '/manage/role-strategy/assign-roles' }, function(tab) {
+    chrome.tabs.create({ url: CONFIG.jenkinsBase + '/manage/role-strategy/' }, function(tab) {
       trackTab(tab);
       state.step = 3;
       saveState();
@@ -110,12 +142,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
 
   // Step 3: open alert-targets pipeline
   if (msg.action === 'step3_openPipeline') {
-    chrome.tabs.create({ url: CONFIG.jenkinsBase + '/job/add-user-to-alert-targets/build?delay=0sec' }, function(tab) {
-      trackTab(tab);
-      state.pipelineTabId = tab.id;
-      state.step = 4;
-      saveState();
-    });
+    openPipelineTab();
     sendResponse(state);
     return;
   }
@@ -187,18 +214,50 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     state.step = 9;
     saveState();
     closeAllOpenedTabs();
-    if (state.jiraTabId) {
-      chrome.tabs.update(state.jiraTabId, { active: true });
+    openJiraTab(function(tabId) {
+      if (!tabId) return;
       setTimeout(function() {
         chrome.scripting.executeScript({
-          target: { tabId: state.jiraTabId },
+          target: { tabId: tabId },
           files: ['content-jira.js']
         }, function() {
           setTimeout(function() {
-            chrome.tabs.sendMessage(state.jiraTabId, { action: 'resolveTicket', ticket: state.jiraTicket });
+            chrome.tabs.sendMessage(tabId, { action: 'resolveTicket', ticket: state.jiraTicket });
           }, 200);
         });
       }, 500);
+    });
+    sendResponse(state);
+    return;
+  }
+
+  // Re-open the Jira tab when jumping back to step 1
+  if (msg.action === 'gotoJira') {
+    openJiraTab();
+    sendResponse(state);
+    return;
+  }
+
+  // Re-open the pipeline tab for the Slack ID fill when jumping back to step 6.
+// If the pipeline tab is gone, restart the fill flow from step 4.
+  if (msg.action === 'gotoPipeline') {
+    var restartPipeline = function() { openPipelineTab(); };
+    if (state.pipelineTabId) {
+      chrome.tabs.get(state.pipelineTabId, function(tab) {
+        if (chrome.runtime.lastError) { restartPipeline(); return; }
+        state.step = 6;
+        saveState();
+        chrome.tabs.update(state.pipelineTabId, { active: true }, function() {
+          setTimeout(function() {
+            chrome.scripting.executeScript({
+              target: { tabId: state.pipelineTabId },
+              files: ['content-jenkins.js']
+            });
+          }, 500);
+        });
+      });
+    } else {
+      restartPipeline();
     }
     sendResponse(state);
     return;

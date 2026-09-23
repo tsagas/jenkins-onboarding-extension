@@ -1,5 +1,22 @@
 # Changelog
 
+## 2.0.0
+
+### Changed
+- Reworked for the upgraded Jira issue view — status button and transition menu now located via `data-testid` selectors, transitions triggered with a full pointer/mouse event sequence (react-select ignores plain clicks)
+- Menu item matching handles labels that combine the transition name and target status (e.g. "Start progress → In Progress")
+- Resolve comment POST now uses ADF format with a plain-string body fallback and XSRF header for Data Center instances
+- Jenkins role management reworked for the redesigned `/manage/role-strategy/` page — Assign Roles tab handling, new Add User dialog (`data-id` inputs, OK button) and Developer checkbox detected via table header instead of input name
+- Popup steps are now clickable before starting when the focused tab is a Jira ticket — collects the user info and jumps straight to the chosen stage without changing ticket status
+- Step jumps open the stage's tab when it was closed — new Jira Domain option reconstructs the ticket URL; a closed pipeline tab restarts the fill flow from step 4
+- Slack search verifies the top result against the full name — on mismatch the operator is asked to search manually while the flow keeps watching for the member ID
+
+### Fixed
+- Duplicate Jenkins tabs opening on start (duplicate content-jira message listeners accumulating per injection)
+- Ticket not transitioning to In Progress after the Jira upgrade
+- Resolve comment failing with HTTP 400 (body format mismatch between Jira Cloud and Data Center)
+- Clipboard writes failing when the Jira tab loses focus, which could stall the Slack handoff
+
 ## 1.0.0
 
 ### Changed

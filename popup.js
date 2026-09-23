@@ -1,12 +1,15 @@
 function updateUI(state) {
   var steps = document.querySelectorAll('.step');
-  steps.forEach(function(el) {
-    var s = parseInt(el.dataset.step);
-    el.classList.remove('active', 'done', 'clickable');
-    if (s < state.step) el.classList.add('done');
-    else if (s === state.step) el.classList.add('active');
-    // Make steps clickable when onboarding is active
-    if (state.step > 0) el.classList.add('clickable');
+  chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+    var onTicket = tabs[0] && tabs[0].url && /([A-Z]+-\d+)/.test(tabs[0].url);
+    steps.forEach(function(el) {
+      var s = parseInt(el.dataset.step);
+      el.classList.remove('active', 'done', 'clickable');
+      if (s < state.step) el.classList.add('done');
+      else if (s === state.step) el.classList.add('active');
+      // Clickable during an active flow, or from a Jira ticket page before starting
+      if (state.step > 0 || onTicket) el.classList.add('clickable');
+    });
   });
 
   var info = document.getElementById('info');
@@ -32,13 +35,15 @@ function updateUI(state) {
   }
 }
 
+// Each step maps to the action that opens/reopens that stage's page.
+// The background actions set the state step themselves.
 var stepActions = {
-  1: 'step1_openJenkins',
-  2: 'step2_openAssignRoles',
-  3: 'step3_openPipeline',
-  4: 'step4_openSlack',
+  1: 'gotoJira',
+  2: 'step1_openJenkins',
+  3: 'step2_openAssignRoles',
+  4: 'step3_openPipeline',
   5: 'step4_openSlack',
-  6: 'step6_openYopass',
+  6: 'gotoPipeline',
   7: 'step6_openYopass',
   8: 'step8_resolveJira'
 };
@@ -46,9 +51,7 @@ var stepActions = {
 function jumpToStep(targetStep) {
   var action = stepActions[targetStep];
   if (!action) return;
-  // Update the state step first, then trigger the action
-  chrome.runtime.sendMessage({ action: 'setState', data: { step: targetStep } }, function() {
-    chrome.runtime.sendMessage({ action: action });
+  chrome.runtime.sendMessage({ action: action }, function() {
     window.close();
   });
 }
@@ -57,9 +60,40 @@ function jumpToStep(targetStep) {
 document.querySelectorAll('.step').forEach(function(el) {
   el.addEventListener('click', function() {
     chrome.runtime.sendMessage({ action: 'getState' }, function(state) {
-      if (state.step === 0) return; // Not started yet
       var targetStep = parseInt(el.dataset.step);
-      jumpToStep(targetStep);
+      if (state.step > 0) { jumpToStep(targetStep); return; }
+
+      // Not started yet: allow jumping straight to a step from the ticket page
+      chrome.storage.local.get('config', function(data) {
+        var cfg = data.config || {};
+        if (!cfg.jenkinsBase) {
+          alert('Please configure the extension first.\nGo to chrome://extensions > Jenkins Onboarding > Details > Extension options');
+          return;
+        }
+        chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+          var tab = tabs[0];
+          var url = tab && tab.url ? tab.url : '';
+          var onTicket = /([A-Z]+-\d+)/.test(url) && (!cfg.jiraDomain || url.indexOf(cfg.jiraDomain) !== -1);
+          if (!onTicket) {
+            alert('Open the Jira ticket page first, then click a step to jump straight to it.');
+            return;
+          }
+          chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            files: ['content-jira.js']
+          }, function() {
+            setTimeout(function() {
+              chrome.tabs.sendMessage(tab.id, { action: 'collectUserInfo' }, function(response) {
+                if (chrome.runtime.lastError || !response || !response.ok) {
+                  alert('Could not read the ticket details.');
+                  return;
+                }
+                jumpToStep(targetStep);
+              });
+            }, 200);
+          });
+        });
+      });
     });
   });
 });
