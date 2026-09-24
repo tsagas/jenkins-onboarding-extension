@@ -2,8 +2,15 @@
 
 ## 2.1.0
 
-### Changed
+Firefox support — the extension now installs on Firefox as a signed, self-hosted add-on with automatic updates, alongside the existing Chrome distribution.
+
+### Added
 - Firefox compatibility: background declared as both `scripts` (Firefox event page) and `service_worker` (Chrome), plus a stable Gecko add-on ID. Chrome behavior is unchanged.
+- Firefox auto-updates: the manifest's `update_url` points at an update manifest served via GitHub Pages, refreshed automatically by the release workflow on every release
+- Proper release artifacts: every release ships an AMO-signed `.xpi` for Firefox (signed in CI using AMO API credentials stored as GitHub Actions secrets) and a Chrome `.zip` build with the Firefox-only manifest keys stripped — both installable straight from the Releases page
+- Documentation: Firefox installation, initial configuration (via `about:addons` → Options), and update instructions added to the README
+
+### Changed
 - On Firefox, site permissions must be granted per-domain on first use, and clipboard convenience copies (name/username to clipboard, pre-Slack clipboard clear) and the clipboard-read fallback are unavailable due to browser restrictions — no flow step depends on them; all data is carried in extension state.
 
 ## 2.0.1
