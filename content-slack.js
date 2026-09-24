@@ -37,7 +37,10 @@
           if (!el || el.getAttribute('aria-label') !== 'Query') return;
           clearInterval(i);
 
-          el.innerHTML = '<p>' + state.fullName + '</p>';
+          var p = document.createElement('p');
+          p.textContent = state.fullName;
+          el.textContent = '';
+          el.appendChild(p);
           el.dispatchEvent(new Event('input', { bubbles: true }));
 
           setTimeout(function() {
@@ -124,8 +127,11 @@
 
   function typeAndSend(editor, message) {
     editor.focus();
-    var html = message.split('\n').map(function(line) { return '<p>' + line + '</p>'; }).join('');
-    editor.innerHTML = html;
+    message.split('\n').forEach(function(line) {
+      var p = document.createElement('p');
+      p.textContent = line;
+      editor.appendChild(p);
+    });
     editor.dispatchEvent(new Event('input', { bubbles: true }));
 
     setTimeout(function() {

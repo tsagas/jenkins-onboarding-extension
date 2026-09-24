@@ -15,9 +15,17 @@ function updateUI(state) {
   var info = document.getElementById('info');
   if (state.fullName) {
     info.style.display = 'block';
-    info.innerHTML = '<b>Name:</b> ' + state.fullName + '<br><b>Username:</b> ' + state.username + '<br><b>Email:</b> ' + state.email;
-    if (state.slackId) info.innerHTML += '<br><b>Slack ID:</b> ' + state.slackId;
-    if (state.jiraTicket) info.innerHTML += '<br><b>Ticket:</b> ' + state.jiraTicket;
+    info.textContent = '';
+    var rows = [['Name', state.fullName], ['Username', state.username], ['Email', state.email]];
+    if (state.slackId) rows.push(['Slack ID', state.slackId]);
+    if (state.jiraTicket) rows.push(['Ticket', state.jiraTicket]);
+    rows.forEach(function(row) {
+      var label = document.createElement('b');
+      label.textContent = row[0] + ':';
+      info.appendChild(label);
+      info.appendChild(document.createTextNode(' ' + row[1]));
+      info.appendChild(document.createElement('br'));
+    });
   }
 
   var startBtn = document.getElementById('startBtn');

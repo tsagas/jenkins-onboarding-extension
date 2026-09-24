@@ -14,19 +14,16 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Extract changelog for this version
-        id: changelog
         run: |
           VERSION="${GITHUB_REF_NAME}"
           awk "/^## ${VERSION}/{found=1; next} /^## /{found=0} found" CHANGELOG.md > release_notes.md
 
       - name: Build .xpi sources
         run: |
-          VERSION="${GITHUB_REF_NAME}"
           mkdir -p build
           cp manifest.json background.js content-jira.js content-jenkins.js \
             content-slack.js content-yopass.js popup.html popup.js \
             options.html options.js icon.png build/
-          (cd build && zip -r "../jenkins-onboarding-${VERSION}-unsigned.xpi" .)
 
       - name: Build Chrome .zip
         run: |
@@ -53,32 +50,35 @@ jobs:
             echo "configured=true" >> "$GITHUB_OUTPUT"
           else
             echo "configured=false" >> "$GITHUB_OUTPUT"
-            echo "AMO secrets not set — release will carry the unsigned xpi."
+            echo "AMO secrets not set — release will ship without a signed xpi."
           fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: release_notes.md
+          files: jenkins-onboarding-*-chrome.zip
 
       - name: Sign with AMO (unlisted channel)
         if: steps.amo.outputs.configured == 'true'
         env:
           AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
           AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION="${GITHUB_REF_NAME}"
-          npx --yes web-ext sign \
+          if npx --yes web-ext sign \
             --api-key "$AMO_JWT_ISSUER" \
             --api-secret "$AMO_JWT_SECRET" \
             --channel unlisted \
             --source-dir build \
-            --artifacts-dir web-ext-artifacts
-          mv web-ext-artifacts/*.xpi "jenkins-onboarding-${VERSION}.xpi"
-          rm -f "jenkins-onboarding-${VERSION}-unsigned.xpi"
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          body_path: release_notes.md
-          files: |
-            jenkins-onboarding-*.xpi
-            jenkins-onboarding-*-chrome.zip
+            --artifacts-dir web-ext-artifacts; then
+            mv web-ext-artifacts/*.xpi "jenkins-onboarding-${VERSION}.xpi"
+            gh release upload "$VERSION" "jenkins-onboarding-${VERSION}.xpi" --clobber
+            echo "Signed xpi attached to the release."
+          else
+            echo "::warning::AMO approval still pending — the amo-poll workflow will attach the signed xpi when it is ready."
+          fi
 
       - name: Refresh update.json for Firefox auto-updates
         run: |

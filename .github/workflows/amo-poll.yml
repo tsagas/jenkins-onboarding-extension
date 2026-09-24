@@ -1,0 +1,57 @@
+name: Attach signed Firefox xpi
+
+on:
+  schedule:
+    - cron: '23 * * * *'
+  workflow_dispatch:
+
+jobs:
+  poll:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Attach signed xpi to the latest release when AMO has signed it
+        env:
+          AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
+          AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${AMO_JWT_ISSUER:-}" ] || [ -z "${AMO_JWT_SECRET:-}" ]; then
+            echo "AMO credentials not configured — nothing to do."
+            exit 0
+          fi
+
+          TAG=$(gh release list --limit 1 --json tagName --jq '.[0].tagName')
+          echo "Checking release ${TAG}"
+
+          if gh release view "$TAG" --json assets --jq '.assets[].name' | grep -Fxq "jenkins-onboarding-${TAG}.xpi"; then
+            echo "Signed xpi already attached."
+            exit 0
+          fi
+
+          # AMO JWT (HS256) generated from the repo secrets
+          JWT=$(ISSUER="$AMO_JWT_ISSUER" SECRET="$AMO_JWT_SECRET" node -e '
+            const crypto = require("crypto");
+            const b64 = (o) => Buffer.from(JSON.stringify(o)).toString("base64url");
+            const now = Math.floor(Date.now() / 1000);
+            const header = b64({ typ: "JWT", alg: "HS256" });
+            const payload = b64({ iss: process.env.ISSUER, jti: crypto.randomBytes(16).toString("hex"), iat: now - 10, exp: now + 300 });
+            const sig = crypto.createHmac("sha256", process.env.SECRET).update(header + "." + payload).digest("base64url");
+            console.log(header + "." + payload + "." + sig);
+          ')
+
+          VERSION_JSON=$(curl -sS -H "Authorization: JWT $JWT" \
+            "https://addons.mozilla.org/api/v5/addons/addon/jenkins-onboarding%40tsagas/versions/${TAG}/")
+
+          FILE_URL=$(echo "$VERSION_JSON" | jq -r '.file.url // empty')
+          if [ -z "$FILE_URL" ]; then
+            echo "AMO has not signed version ${TAG} yet — retrying next hour."
+            exit 0
+          fi
+
+          echo "Signed file ready, attaching..."
+          curl -sS -L -H "Authorization: JWT $JWT" -o "jenkins-onboarding-${TAG}.xpi" "$FILE_URL"
+          gh release upload "$TAG" "jenkins-onboarding-${TAG}.xpi" --clobber
+          echo "Attached signed xpi to release ${TAG}."
