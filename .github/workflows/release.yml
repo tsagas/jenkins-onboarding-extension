@@ -19,7 +19,16 @@ jobs:
           VERSION="${GITHUB_REF_NAME}"
           awk "/^## ${VERSION}/{found=1; next} /^## /{found=0} found" CHANGELOG.md > release_notes.md
 
+      - name: Build unsigned .xpi for Firefox (upload to AMO for signing)
+        run: |
+          VERSION="${GITHUB_REF_NAME}"
+          zip "jenkins-onboarding-${VERSION}.xpi" \
+            manifest.json background.js content-jira.js content-jenkins.js \
+            content-slack.js content-yopass.js popup.html popup.js \
+            options.html options.js icon.png
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           body_path: release_notes.md
+          files: jenkins-onboarding-*.xpi
