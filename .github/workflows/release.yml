@@ -86,7 +86,7 @@ jobs:
           cat > update.json <<EOF
           {
             "addons": {
-              "jenkins-onboarding@tsagas": {
+              "jenkins-onboarding-extension@tsagas": {
                 "updates": [
                   {
                     "version": "${VERSION}",

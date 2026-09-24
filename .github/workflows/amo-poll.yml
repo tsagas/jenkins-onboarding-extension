@@ -43,7 +43,7 @@ jobs:
           ')
 
           VERSION_JSON=$(curl -sS -H "Authorization: JWT $JWT" \
-            "https://addons.mozilla.org/api/v5/addons/addon/jenkins-onboarding%40tsagas/versions/${TAG}/")
+            "https://addons.mozilla.org/api/v5/addons/addon/jenkins-onboarding-extension%40tsagas/versions/${TAG}/")
 
           FILE_URL=$(echo "$VERSION_JSON" | jq -r '.file.url // empty')
           if [ -z "$FILE_URL" ]; then

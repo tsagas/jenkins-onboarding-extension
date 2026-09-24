@@ -1,6 +1,6 @@
 {
   "addons": {
-    "jenkins-onboarding@tsagas": {
+    "jenkins-onboarding-extension@tsagas": {
       "updates": [
         {
           "version": "2.1.0",
