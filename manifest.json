@@ -22,7 +22,8 @@
   "browser_specific_settings": {
     "gecko": {
       "id": "jenkins-onboarding@tsagas",
-      "strict_min_version": "109.0"
+      "strict_min_version": "109.0",
+      "update_url": "https://tsagas.github.io/jenkins-onboarding-extension/update.json"
     }
   },
   "action": {

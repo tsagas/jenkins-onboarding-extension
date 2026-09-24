@@ -1,0 +1,12 @@
+{
+  "addons": {
+    "jenkins-onboarding@tsagas": {
+      "updates": [
+        {
+          "version": "2.1.0",
+          "update_link": "https://github.com/tsagas/jenkins-onboarding-extension/releases/download/2.1.0/jenkins-onboarding-2.1.0.xpi"
+        }
+      ]
+    }
+  }
+}
