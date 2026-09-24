@@ -23,19 +23,32 @@ Turns a multi-step manual onboarding process into a guided, automated flow:
 4. Click **Load unpacked** → select the cloned folder
 5. Go to the extension's **Details** → **Extension options** and configure your URLs
 
+Alternatively, download `jenkins-onboarding-<version>-chrome.zip` from the [Releases page](https://github.com/tsagas/jenkins-onboarding-extension/releases), unzip it, and **Load unpacked** the unzipped folder.
+
 ## Firefox installation
 
-The same manifest works on Firefox (109+); Firefox uses the `background.scripts` key while Chrome uses `service_worker`:
+Firefox (109+) runs the same code base — it reads the `background.scripts` key where Chrome reads `service_worker`.
 
-1. Clone this repo
-2. Open `about:debugging#/runtime/this-firefox`
-3. Click **Load Temporary Add-on…** → select `manifest.json` from the cloned folder
-4. Grant site permissions when prompted — Firefox asks per-domain (Jira, Jenkins, Slack, Yopass) on first use
-5. Configure the extension options as above
+### Permanent install (recommended)
 
-Notes on Firefox:
+Firefox only accepts signed add-ons permanently, so releases are signed through AMO as unlisted / self-distribution (nothing is published publicly):
 
-- Temporary add-ons are removed when Firefox restarts — reload via `about:debugging` for each session. For a permanent install, submit the extension to [addons.mozilla.org](https://addons.mozilla.org/developers/) for signing.
+1. Download `jenkins-onboarding-<version>.xpi` from the repo's GitHub Releases
+2. Sign in at [addons.mozilla.org](https://addons.mozilla.org/developers/) → **Submit a New Add-on** → choose **unlisted** ("on your own") → upload the .xpi
+3. Download the signed .xpi AMO returns
+4. In Firefox: `about:addons` → gear icon → **Install Add-on From File…** → select the signed .xpi
+5. Grant site permissions (Jira, Jenkins, Slack, Yopass) when prompted on first use
+
+### Initial configuration
+
+1. Open `about:addons` → **Extensions**
+2. Click **Jenkins Onboarding** → **Options** (or the ⋮ menu → *Preferences*)
+3. Fill in the same fields as on Chrome: Jenkins Domain, Yopass Domain, Slack Base URL, Email Domain, Jira Domain
+
+For a permanent (signed) install this configuration persists across restarts. If you load the add-on temporarily instead (`about:debugging` → **Load Temporary Add-on…**) for a quick test, the add-on — and its stored configuration — is wiped when Firefox restarts, so re-enter the options each session. After changing options, reload the add-on (`about:debugging` → *Reload*, or reinstall) so the background picks up the new values.
+
+### Firefox limitations
+
 - Clipboard convenience copies (name/username to clipboard, clipboard fallback for the Slack Member ID) are unavailable due to Firefox gesture restrictions. No flow step depends on them — all data is carried in the extension's own state.
 
 ## Configuration
