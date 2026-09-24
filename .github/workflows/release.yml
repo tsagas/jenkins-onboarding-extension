@@ -28,6 +28,21 @@ jobs:
             options.html options.js icon.png build/
           (cd build && zip -r "../jenkins-onboarding-${VERSION}-unsigned.xpi" .)
 
+      - name: Build Chrome .zip
+        run: |
+          VERSION="${GITHUB_REF_NAME}"
+          mkdir -p chrome
+          cp manifest.json background.js content-jira.js content-jenkins.js \
+            content-slack.js content-yopass.js popup.html popup.js \
+            options.html options.js icon.png chrome/
+          node -e "
+            const fs = require('fs');
+            const m = JSON.parse(fs.readFileSync('chrome/manifest.json', 'utf8'));
+            delete m.browser_specific_settings;
+            fs.writeFileSync('chrome/manifest.json', JSON.stringify(m, null, 2));
+          "
+          (cd chrome && zip -r "../jenkins-onboarding-${VERSION}-chrome.zip" .)
+
       - name: Detect AMO credentials
         id: amo
         env:
@@ -61,7 +76,9 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           body_path: release_notes.md
-          files: jenkins-onboarding-*.xpi
+          files: |
+            jenkins-onboarding-*.xpi
+            jenkins-onboarding-*-chrome.zip
 
       - name: Refresh update.json for Firefox auto-updates
         run: |
