@@ -19,13 +19,43 @@ jobs:
           VERSION="${GITHUB_REF_NAME}"
           awk "/^## ${VERSION}/{found=1; next} /^## /{found=0} found" CHANGELOG.md > release_notes.md
 
-      - name: Build unsigned .xpi for Firefox (upload to AMO for signing)
+      - name: Build .xpi sources
         run: |
           VERSION="${GITHUB_REF_NAME}"
-          zip "jenkins-onboarding-${VERSION}.xpi" \
-            manifest.json background.js content-jira.js content-jenkins.js \
+          mkdir -p build
+          cp manifest.json background.js content-jira.js content-jenkins.js \
             content-slack.js content-yopass.js popup.html popup.js \
-            options.html options.js icon.png
+            options.html options.js icon.png build/
+          (cd build && zip -r "../jenkins-onboarding-${VERSION}-unsigned.xpi" .)
+
+      - name: Detect AMO credentials
+        id: amo
+        env:
+          AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
+          AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+        run: |
+          if [ -n "$AMO_JWT_ISSUER" ] && [ -n "$AMO_JWT_SECRET" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "AMO secrets not set — release will carry the unsigned xpi."
+          fi
+
+      - name: Sign with AMO (unlisted channel)
+        if: steps.amo.outputs.configured == 'true'
+        env:
+          AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
+          AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+        run: |
+          VERSION="${GITHUB_REF_NAME}"
+          npx --yes web-ext sign \
+            --api-key "$AMO_JWT_ISSUER" \
+            --api-secret "$AMO_JWT_SECRET" \
+            --channel unlisted \
+            --source-dir build \
+            --artifacts-dir web-ext-artifacts
+          mv web-ext-artifacts/*.xpi "jenkins-onboarding-${VERSION}.xpi"
+          rm -f "jenkins-onboarding-${VERSION}-unsigned.xpi"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
