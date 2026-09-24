@@ -27,17 +27,19 @@ Alternatively, download `jenkins-onboarding-<version>-chrome.zip` from the [Rele
 
 ## Firefox installation
 
-Firefox (109+) runs the same code base — it reads the `background.scripts` key where Chrome reads `service_worker`.
+Firefox (126+) runs the same code base — it reads the `background.scripts` key where Chrome reads `service_worker`.
 
-### Permanent install (recommended)
+### Install
 
-Firefox only accepts signed add-ons permanently, so releases are signed through AMO as unlisted / self-distribution (nothing is published publicly):
+Firefox only accepts signed add-ons permanently, so every release ships a pre-signed `.xpi` — signed automatically in CI (AMO unlisted / self-distribution, nothing is published publicly):
 
-1. Download `jenkins-onboarding-<version>.xpi` from the repo's GitHub Releases
-2. Sign in at [addons.mozilla.org](https://addons.mozilla.org/developers/) → **Submit a New Add-on** → choose **unlisted** ("on your own") → upload the .xpi
-3. Download the signed .xpi AMO returns
-4. In Firefox: `about:addons` → gear icon → **Install Add-on From File…** → select the signed .xpi
-5. Grant site permissions (Jira, Jenkins, Slack, Yopass) when prompted on first use
+1. Download `jenkins-onboarding-<version>.xpi` from the [Releases page](https://github.com/tsagas/jenkins-onboarding-extension/releases) — already signed, no AMO account needed
+2. In Firefox: `about:addons` → gear icon → **Install Add-on From File…** → select the downloaded `.xpi`
+3. Grant site permissions (Jira, Jenkins, Slack, Yopass) when prompted on first use
+
+### Updates
+
+The add-on updates itself: it checks the update manifest (served via GitHub Pages, refreshed on every release) and applies newer signed versions automatically — no manual reinstall needed. Force a check via `about:addons` → gear icon → **Check for Updates**.
 
 ### Initial configuration
 
@@ -61,6 +63,7 @@ After installation, open the extension options and fill in:
 | Yopass Domain | `yopass.example.com` |
 | Slack Base URL | `https://app.slack.com` |
 | Email Domain | `example.com` |
+| Jira Domain | `jira.example.com` |
 
 ## Usage
 
