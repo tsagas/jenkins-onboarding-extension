@@ -15,7 +15,7 @@ Turns a multi-step manual onboarding process into a guided, automated flow:
 7. **Slack** → Sends the message with instructions to the user
 8. **Jira** → Resolves the ticket and adds a completion comment
 
-## Installation
+## Chrome installation
 
 1. Clone this repo
 2. Open `chrome://extensions/` in Chrome
@@ -31,9 +31,9 @@ Firefox (126+) runs the same code base — it reads the `background.scripts` key
 
 ### Install
 
-Firefox only accepts signed add-ons permanently, so every release ships a pre-signed `.xpi` — signed automatically in CI (AMO unlisted / self-distribution, nothing is published publicly):
+Firefox only accepts signed add-ons permanently, so every release ships a pre-signed `.xpi`:
 
-1. Download `jenkins-onboarding-<version>.xpi` from the [Releases page](https://github.com/tsagas/jenkins-onboarding-extension/releases) — already signed, no AMO account needed
+1. Download `jenkins-onboarding-<version>.xpi` from the [Releases page](https://github.com/tsagas/jenkins-onboarding-extension/releases)
 2. In Firefox: `about:addons` → gear icon → **Install Add-on From File…** → select the downloaded `.xpi`
 3. Grant site permissions (Jira, Jenkins, Slack, Yopass) when prompted on first use
 
